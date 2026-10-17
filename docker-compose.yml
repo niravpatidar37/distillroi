@@ -1,0 +1,70 @@
+name: p5-distill
+
+# Local stack: vLLM serving the merged student + the router API.
+#   STUDENT_MODEL_DIR=./artifacts/merged/<config> docker compose up -d   (default ./artifacts/student)
+# Weights are mounted read-only from local disk; nothing is fetched from the internet at request time
+# (HF_HUB_OFFLINE=1). Both ports are bound to 127.0.0.1 only.
+
+services:
+  vllm:
+    # pinned by digest (v0.31.0 multi-arch index)
+    image: vllm/vllm-openai:v0.31.0@sha256:c1c9f6fd5c109ba7f0546a59f5b2f15fb87f64c77782e90a27b648b42a8e67c3
+    command:
+      - /models/student
+      - --served-model-name=distill-student
+      - --host=0.0.0.0
+      - --port=8000
+      - --dtype=bfloat16
+      - --max-model-len=512
+      - --gpu-memory-utilization=${VLLM_GPU_UTIL:-0.70}
+      - --max-num-seqs=${VLLM_MAX_NUM_SEQS:-128}
+      - --max-logprobs=5
+    environment:
+      HF_HUB_OFFLINE: "1"
+      VLLM_NO_USAGE_STATS: "1"
+      DO_NOT_TRACK: "1"
+    volumes:
+      - ${STUDENT_MODEL_DIR:-./artifacts/student}:/models/student:ro
+    ports:
+      - "127.0.0.1:8105:8000"
+    ipc: host
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=3).status == 200 else 1)"]
+      interval: 15s
+      timeout: 5s
+      retries: 20
+      start_period: 180s
+    restart: unless-stopped
+
+  router:
+    build: .
+    image: p5-distill-router:local
+    depends_on:
+      vllm:
+        condition: service_healthy
+    env_file:
+      - path: ${PORTFOLIO_ENV_FILE:-F:/.secrets/portfolio.env}
+        required: false
+    environment:
+      STUDENT_BASE_URL: http://vllm:8000/v1
+      STUDENT_MODEL: distill-student
+      ROUTER_THRESHOLD: ${ROUTER_THRESHOLD:-0.5}
+      TEACHER_ENABLED: ${TEACHER_ENABLED:-true}
+      LLM_SPEND_LEDGER: /ledger/ledger.jsonl
+      PORT: "8080"
+    volumes:
+      - ${LLM_SPEND_DIR:-F:/.llm-spend}:/ledger
+    ports:
+      - "127.0.0.1:8115:8080"
+    read_only: true
+    tmpfs: [/tmp]
+    security_opt: ["no-new-privileges:true"]
+    cap_drop: [ALL]
+    restart: unless-stopped
