@@ -150,7 +150,7 @@ def main() -> None:
 
     uvicorn.run(
         create_app(),
-        host=os.environ.get("HOST", "0.0.0.0"),  # noqa: S104  # nosec B104 - container must listen on all interfaces
+        host=os.environ.get("HOST", "0.0.0.0"),  # noqa: S104 (container must listen on all interfaces)  # nosec B104
         port=int(os.environ.get("PORT", "8080")),
         timeout_graceful_shutdown=20,
         log_config=None,

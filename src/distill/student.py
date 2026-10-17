@@ -58,11 +58,11 @@ class GcpIdTokenSource:
     def __init__(self, audience: str, client: httpx.AsyncClient) -> None:
         self.audience = audience
         self._client = client
-        self._token = ""
+        self._token: str | None = None
         self._expires = 0.0
 
     async def token(self) -> str:
-        if time.monotonic() < self._expires:
+        if self._token is not None and time.monotonic() < self._expires:
             return self._token
         r = await self._client.get(
             _METADATA_IDENTITY_URL,

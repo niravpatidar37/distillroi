@@ -59,7 +59,7 @@ def stable_id(text: str) -> str:
 
 def shuffled(rows: Sequence[dict[str, Any]], seed: int) -> list[dict[str, Any]]:
     out = list(rows)
-    random.Random(seed).shuffle(out)  # noqa: S311  # nosec B311 - reproducible data shuffling, not crypto
+    random.Random(seed).shuffle(out)  # noqa: S311 (reproducible data shuffling, not crypto)  # nosec B311
     return out
 
 

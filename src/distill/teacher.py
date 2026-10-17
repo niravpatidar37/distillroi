@@ -152,7 +152,7 @@ def parse_try_again_s(body: str) -> float | None:
 def _retry_after_s(resp: httpx.Response, attempt: int) -> float:
     ra = resp.headers.get("retry-after")
     base = float(ra) if ra and ra.replace(".", "", 1).isdigit() else min(60.0, 2.0**attempt)
-    return base + random.uniform(0.0, 1.0)  # noqa: S311  # nosec B311 - jitter
+    return base + random.uniform(0.0, 1.0)  # noqa: S311 (jitter)  # nosec B311
 
 
 class GroqTeacher:
