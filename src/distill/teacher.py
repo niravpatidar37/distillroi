@@ -228,7 +228,9 @@ class GroqTeacher:
 
     async def classify_one(self, query: str) -> tuple[str | None, Usage]:
         """Single-query path used by the router's escalation (not cached: live traffic)."""
-        content, usage = await self._chat(user_prompt([query]), max_tokens=1024)
+        # measured single-query replies are ~35 output tokens incl. reasoning; a small max_tokens keeps Groq's
+        # per-request quota reservation (prompt + max_tokens) low
+        content, usage = await self._chat(user_prompt([query]), max_tokens=256)
         valid, _ = parse_batch(content, 1)
         return valid.get(1), usage
 

@@ -1,0 +1,27 @@
+{
+  "val": {
+    "n": 130,
+    "acc_vs_gold": 0.7230769230769231,
+    "macro_f1_vs_gold": 0.6927645502645503,
+    "invalid_rate": 0.046153846153846156,
+    "errors": 0,
+    "wall_s_at_c32": 1.42,
+    "acc_vs_teacher": 0.7692307692307693
+  },
+  "test_770": {
+    "n": 770,
+    "acc_vs_gold": 0.7324675324675325,
+    "macro_f1_vs_gold": 0.732862134215496,
+    "invalid_rate": 0.04285714285714286,
+    "errors": 0,
+    "wall_s_at_c32": 5.58
+  },
+  "test_full": {
+    "n": 3080,
+    "acc_vs_gold": 0.7425324675324675,
+    "macro_f1_vs_gold": 0.7434466886350473,
+    "invalid_rate": 0.03766233766233766,
+    "errors": 0,
+    "wall_s_at_c32": 21.59
+  }
+}

@@ -97,7 +97,7 @@ async def predict(splits: list[str]) -> None:
     await client.aclose()
 
 
-async def sweep(levels: list[int], min_requests: int) -> None:
+async def sweep(levels: list[int], min_requests: int, out_path: str) -> None:
     # Load-generation text: real banking77 training-split queries that were never teacher-labelled or trained on
     # (pool rows after index 5000), so the sweep never touches the test set.
     texts = [str(r["text"]) for r in read_jsonl(ROOT / "data/processed/pool.jsonl")[5000:]]
@@ -139,7 +139,7 @@ async def sweep(levels: list[int], min_requests: int) -> None:
         "levels": rows,
         "hardware": os.environ.get("BENCH_HARDWARE", "NVIDIA RTX 3060 Laptop 6 GB (Docker Desktop WSL2)"),
     }
-    (ROOT / "results/vllm_sweep.json").write_text(json.dumps(out, indent=2) + "\n")
+    (ROOT / out_path).write_text(json.dumps(out, indent=2) + "\n")
 
 
 def main() -> None:
@@ -150,11 +150,12 @@ def main() -> None:
     s = sub.add_parser("sweep")
     s.add_argument("--levels", default="1,2,4,8,16,32,64,128")
     s.add_argument("--min-requests", type=int, default=200)
+    s.add_argument("--out", default="results/vllm_sweep.json")
     a = ap.parse_args()
     if a.cmd == "predict":
         asyncio.run(predict(a.split))
     else:
-        asyncio.run(sweep([int(x) for x in a.levels.split(",")], a.min_requests))
+        asyncio.run(sweep([int(x) for x in a.levels.split(",")], a.min_requests, a.out))
 
 
 if __name__ == "__main__":

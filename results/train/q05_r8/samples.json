@@ -1,0 +1,194 @@
+[
+ {
+  "epoch": 1,
+  "text": "I have just read my statement and there is a payment I don't recognise.",
+  "teacher": "card_payment_not_recognised",
+  "gold": "card_payment_not_recognised",
+  "student": "wrong_amount_of_cash_received",
+  "conf": 0.139
+ },
+ {
+  "epoch": 1,
+  "text": "I tried to get gas but my money was gone!",
+  "teacher": "card_payment_fee_charged",
+  "gold": "topping_up_by_card",
+  "student": "wrong_amount_of_cash_received",
+  "conf": 0.2837
+ },
+ {
+  "epoch": 1,
+  "text": "Can I pay for my gas using my Apple watch?",
+  "teacher": "apple_pay_or_google_pay",
+  "gold": "apple_pay_or_google_pay",
+  "student": "apple_pay_or_google_pay",
+  "conf": 0.8082
+ },
+ {
+  "epoch": 1,
+  "text": "What does the bank charge for lost or stolen card replacements?",
+  "teacher": "card_payment_fee_charged",
+  "gold": "order_physical_card",
+  "student": "compromised_card",
+  "conf": 0.3921
+ },
+ {
+  "epoch": 1,
+  "text": "I tried my PIN too many times and now my card won't work!",
+  "teacher": "pin_blocked",
+  "gold": "pin_blocked",
+  "student": "passcode_forgotten",
+  "conf": 0.3329
+ },
+ {
+  "epoch": 1,
+  "text": "My new card came in.  How do I activate?",
+  "teacher": "activate_my_card",
+  "gold": "activate_my_card",
+  "student": "activate_my_card",
+  "conf": 0.9109
+ },
+ {
+  "epoch": 1,
+  "text": "why don't you accept american express for adding money to my account",
+  "teacher": "supported_cards_and_currencies",
+  "gold": "supported_cards_and_currencies",
+  "student": "declined_card_payment",
+  "conf": 0.1853
+ },
+ {
+  "epoch": 1,
+  "text": "Hi, I'm trying to by some crypto and the app isn't allowing it. I really want to exchange this, what am I doing wrong?",
+  "teacher": "exchange_via_app",
+  "gold": "beneficiary_not_allowed",
+  "student": "wrong_exchange_rate_for_cash_withdrawal",
+  "conf": 0.1064
+ },
+ {
+  "epoch": 2,
+  "text": "I have just read my statement and there is a payment I don't recognise.",
+  "teacher": "card_payment_not_recognised",
+  "gold": "card_payment_not_recognised",
+  "student": "card_payment_not_recognised",
+  "conf": 0.7649
+ },
+ {
+  "epoch": 2,
+  "text": "I tried to get gas but my money was gone!",
+  "teacher": "card_payment_fee_charged",
+  "gold": "topping_up_by_card",
+  "student": "card_payment_not_recognised",
+  "conf": 0.1314
+ },
+ {
+  "epoch": 2,
+  "text": "Can I pay for my gas using my Apple watch?",
+  "teacher": "apple_pay_or_google_pay",
+  "gold": "apple_pay_or_google_pay",
+  "student": "apple_pay_or_google_pay",
+  "conf": 0.9383
+ },
+ {
+  "epoch": 2,
+  "text": "What does the bank charge for lost or stolen card replacements?",
+  "teacher": "card_payment_fee_charged",
+  "gold": "order_physical_card",
+  "student": null,
+  "conf": 0.1291
+ },
+ {
+  "epoch": 2,
+  "text": "I tried my PIN too many times and now my card won't work!",
+  "teacher": "pin_blocked",
+  "gold": "pin_blocked",
+  "student": "pin_blocked",
+  "conf": 0.7816
+ },
+ {
+  "epoch": 2,
+  "text": "My new card came in.  How do I activate?",
+  "teacher": "activate_my_card",
+  "gold": "activate_my_card",
+  "student": "activate_my_card",
+  "conf": 0.972
+ },
+ {
+  "epoch": 2,
+  "text": "why don't you accept american express for adding money to my account",
+  "teacher": "supported_cards_and_currencies",
+  "gold": "supported_cards_and_currencies",
+  "student": "supported_cards_and_currencies",
+  "conf": 0.3371
+ },
+ {
+  "epoch": 2,
+  "text": "Hi, I'm trying to by some crypto and the app isn't allowing it. I really want to exchange this, what am I doing wrong?",
+  "teacher": "exchange_via_app",
+  "gold": "beneficiary_not_allowed",
+  "student": null,
+  "conf": 0.4782
+ },
+ {
+  "epoch": 3,
+  "text": "I have just read my statement and there is a payment I don't recognise.",
+  "teacher": "card_payment_not_recognised",
+  "gold": "card_payment_not_recognised",
+  "student": "card_payment_not_recognised",
+  "conf": 0.9003
+ },
+ {
+  "epoch": 3,
+  "text": "I tried to get gas but my money was gone!",
+  "teacher": "card_payment_fee_charged",
+  "gold": "topping_up_by_card",
+  "student": "wrong_amount_of_cash_received",
+  "conf": 0.3527
+ },
+ {
+  "epoch": 3,
+  "text": "Can I pay for my gas using my Apple watch?",
+  "teacher": "apple_pay_or_google_pay",
+  "gold": "apple_pay_or_google_pay",
+  "student": "apple_pay_or_google_pay",
+  "conf": 0.9414
+ },
+ {
+  "epoch": 3,
+  "text": "What does the bank charge for lost or stolen card replacements?",
+  "teacher": "card_payment_fee_charged",
+  "gold": "order_physical_card",
+  "student": "card_payment_not_recognised",
+  "conf": 0.1203
+ },
+ {
+  "epoch": 3,
+  "text": "I tried my PIN too many times and now my card won't work!",
+  "teacher": "pin_blocked",
+  "gold": "pin_blocked",
+  "student": "pin_blocked",
+  "conf": 0.8598
+ },
+ {
+  "epoch": 3,
+  "text": "My new card came in.  How do I activate?",
+  "teacher": "activate_my_card",
+  "gold": "activate_my_card",
+  "student": "activate_my_card",
+  "conf": 0.9611
+ },
+ {
+  "epoch": 3,
+  "text": "why don't you accept american express for adding money to my account",
+  "teacher": "supported_cards_and_currencies",
+  "gold": "supported_cards_and_currencies",
+  "student": "supported_cards_and_currencies",
+  "conf": 0.7463
+ },
+ {
+  "epoch": 3,
+  "text": "Hi, I'm trying to by some crypto and the app isn't allowing it. I really want to exchange this, what am I doing wrong?",
+  "teacher": "exchange_via_app",
+  "gold": "beneficiary_not_allowed",
+  "student": null,
+  "conf": 0.2166
+ }
+]

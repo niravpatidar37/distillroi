@@ -1,0 +1,98 @@
+{
+  "endpoint": "vLLM OpenAI-compatible, student",
+  "knee_rule": "max concurrency with p95 <= 2 x p95(c=1)",
+  "knee": {
+    "concurrency": 16,
+    "requests": 300,
+    "errors": 0,
+    "wall_s": 1.248,
+    "throughput_rps": 240.44,
+    "p50_ms": 63.6,
+    "p95_ms": 94.7,
+    "p99_ms": 105.9
+  },
+  "max_throughput_rps": 343.31,
+  "levels": [
+    {
+      "concurrency": 1,
+      "requests": 300,
+      "errors": 0,
+      "wall_s": 11.08,
+      "throughput_rps": 27.08,
+      "p50_ms": 36.3,
+      "p95_ms": 53.7,
+      "p99_ms": 61.2
+    },
+    {
+      "concurrency": 2,
+      "requests": 300,
+      "errors": 0,
+      "wall_s": 6.975,
+      "throughput_rps": 43.01,
+      "p50_ms": 44.3,
+      "p95_ms": 68.6,
+      "p99_ms": 80.7
+    },
+    {
+      "concurrency": 4,
+      "requests": 300,
+      "errors": 0,
+      "wall_s": 4.05,
+      "throughput_rps": 74.08,
+      "p50_ms": 50.4,
+      "p95_ms": 79.4,
+      "p99_ms": 92.1
+    },
+    {
+      "concurrency": 8,
+      "requests": 300,
+      "errors": 0,
+      "wall_s": 2.371,
+      "throughput_rps": 126.56,
+      "p50_ms": 58.1,
+      "p95_ms": 103.0,
+      "p99_ms": 127.0
+    },
+    {
+      "concurrency": 16,
+      "requests": 300,
+      "errors": 0,
+      "wall_s": 1.248,
+      "throughput_rps": 240.44,
+      "p50_ms": 63.6,
+      "p95_ms": 94.7,
+      "p99_ms": 105.9
+    },
+    {
+      "concurrency": 32,
+      "requests": 300,
+      "errors": 0,
+      "wall_s": 0.874,
+      "throughput_rps": 343.31,
+      "p50_ms": 81.6,
+      "p95_ms": 145.9,
+      "p99_ms": 176.5
+    },
+    {
+      "concurrency": 64,
+      "requests": 512,
+      "errors": 0,
+      "wall_s": 3.493,
+      "throughput_rps": 146.57,
+      "p50_ms": 247.3,
+      "p95_ms": 1307.7,
+      "p99_ms": 2180.1
+    },
+    {
+      "concurrency": 128,
+      "requests": 1024,
+      "errors": 1,
+      "wall_s": 12.478,
+      "throughput_rps": 81.98,
+      "p50_ms": 916.2,
+      "p95_ms": 4090.0,
+      "p99_ms": 5494.9
+    }
+  ],
+  "hardware": "NVIDIA RTX 3060 Laptop 6 GB (Docker Desktop WSL2)"
+}

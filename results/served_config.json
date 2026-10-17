@@ -1,0 +1,21 @@
+{
+  "name": "q15_r16",
+  "base_model": "Qwen/Qwen2.5-1.5B-Instruct",
+  "lora_r": 16,
+  "quantization": "nf4",
+  "trainable_params": 18464768,
+  "best_epoch": 3,
+  "val_acc_vs_teacher": 0.7615384615384615,
+  "val_f1_vs_teacher": 0.7206613756613757,
+  "val_acc_vs_gold": 0.7384615384615385,
+  "val_loss": 0.17066867460667248,
+  "train_time_s": 265.0,
+  "peak_vram_gb": 1.83,
+  "peak_reserved_gb": 2.2,
+  "spilled_to_shared_memory": false,
+  "test_770_acc_hf": 0.7324675324675325,
+  "test_770_f1_hf": 0.73209591390536,
+  "test_full_acc_hf": 0.7431818181818182,
+  "test_full_f1_hf": 0.7443264781570845,
+  "selection_rule": "max val acc vs teacher; tie-break val macro-F1 vs teacher, then lower val loss (test never used)"
+}

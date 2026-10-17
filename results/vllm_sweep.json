@@ -1,0 +1,108 @@
+{
+  "endpoint": "vLLM OpenAI-compatible, student",
+  "knee_rule": "max concurrency with p95 <= 2 x p95(c=1)",
+  "knee": {
+    "concurrency": 16,
+    "requests": 300,
+    "errors": 0,
+    "wall_s": 2.566,
+    "throughput_rps": 116.89,
+    "p50_ms": 130.2,
+    "p95_ms": 193.6,
+    "p99_ms": 230.7
+  },
+  "max_throughput_rps": 193.77,
+  "levels": [
+    {
+      "concurrency": 1,
+      "requests": 300,
+      "errors": 0,
+      "wall_s": 23.462,
+      "throughput_rps": 12.79,
+      "p50_ms": 77.5,
+      "p95_ms": 113.7,
+      "p99_ms": 132.4
+    },
+    {
+      "concurrency": 2,
+      "requests": 300,
+      "errors": 0,
+      "wall_s": 14.017,
+      "throughput_rps": 21.4,
+      "p50_ms": 91.4,
+      "p95_ms": 132.9,
+      "p99_ms": 151.4
+    },
+    {
+      "concurrency": 4,
+      "requests": 300,
+      "errors": 0,
+      "wall_s": 8.237,
+      "throughput_rps": 36.42,
+      "p50_ms": 105.4,
+      "p95_ms": 157.5,
+      "p99_ms": 176.8
+    },
+    {
+      "concurrency": 8,
+      "requests": 300,
+      "errors": 0,
+      "wall_s": 4.593,
+      "throughput_rps": 65.32,
+      "p50_ms": 115.8,
+      "p95_ms": 172.1,
+      "p99_ms": 206.3
+    },
+    {
+      "concurrency": 16,
+      "requests": 300,
+      "errors": 0,
+      "wall_s": 2.566,
+      "throughput_rps": 116.89,
+      "p50_ms": 130.2,
+      "p95_ms": 193.6,
+      "p99_ms": 230.7
+    },
+    {
+      "concurrency": 32,
+      "requests": 300,
+      "errors": 0,
+      "wall_s": 1.626,
+      "throughput_rps": 184.53,
+      "p50_ms": 160.9,
+      "p95_ms": 231.3,
+      "p99_ms": 268.0
+    },
+    {
+      "concurrency": 64,
+      "requests": 512,
+      "errors": 0,
+      "wall_s": 2.642,
+      "throughput_rps": 193.77,
+      "p50_ms": 305.6,
+      "p95_ms": 494.1,
+      "p99_ms": 632.4
+    },
+    {
+      "concurrency": 128,
+      "requests": 1024,
+      "errors": 2,
+      "wall_s": 13.065,
+      "throughput_rps": 78.22,
+      "p50_ms": 955.0,
+      "p95_ms": 4781.0,
+      "p99_ms": 5953.5
+    },
+    {
+      "concurrency": 256,
+      "requests": 2048,
+      "errors": 2,
+      "wall_s": 38.146,
+      "throughput_rps": 53.64,
+      "p50_ms": 4383.5,
+      "p95_ms": 7434.5,
+      "p99_ms": 8203.8
+    }
+  ],
+  "hardware": "NVIDIA RTX 3060 Laptop 6 GB (Docker Desktop WSL2)"
+}

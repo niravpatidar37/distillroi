@@ -1,0 +1,90 @@
+{
+  "name": "q05_r8",
+  "config": {
+    "name": "q05_r8",
+    "base_model": "Qwen/Qwen2.5-0.5B-Instruct",
+    "revision": "7ae557604adf67be50417f59c2c2f167def9a775",
+    "quantization": "nf4",
+    "lora": {
+      "r": 8,
+      "alpha": 16,
+      "dropout": 0.05,
+      "target_modules": [
+        "q_proj",
+        "k_proj",
+        "v_proj",
+        "o_proj",
+        "gate_proj",
+        "up_proj",
+        "down_proj"
+      ]
+    },
+    "train": {
+      "epochs": 3,
+      "lr": 0.0002,
+      "batch_size": 8,
+      "grad_accum": 2,
+      "warmup_ratio": 0.05,
+      "weight_decay": 0.0,
+      "max_len": 144,
+      "seed": 42,
+      "grad_ckpt": true,
+      "vram_cap_gb": 5.4
+    }
+  },
+  "n_train": 1169,
+  "n_val": 130,
+  "trainable_params": 4399104,
+  "total_params": 319518592,
+  "train_time_s": 203.3,
+  "peak_vram_gb": 1.02,
+  "peak_reserved_gb": 1.74,
+  "physical_vram_gb": 6.44,
+  "free_vram_at_start_gb": 5.38,
+  "allocator_cap_gb": 5.4,
+  "spilled_to_shared_memory": false,
+  "best_epoch": 2,
+  "best": {
+    "epoch": 2,
+    "step": 148,
+    "val_loss": 0.20578618154092948,
+    "val_acc_vs_teacher": 0.7384615384615385,
+    "val_f1_vs_teacher": 0.6595238095238095,
+    "val_acc_vs_gold": 0.6923076923076923,
+    "val_invalid_rate": 0.06153846153846154,
+    "elapsed_s": 135.3
+  },
+  "epochs": [
+    {
+      "epoch": 1,
+      "step": 74,
+      "val_loss": 0.4901478668333779,
+      "val_acc_vs_teacher": 0.45384615384615384,
+      "val_f1_vs_teacher": 0.38993855606758837,
+      "val_acc_vs_gold": 0.47692307692307695,
+      "val_invalid_rate": 0.16153846153846155,
+      "elapsed_s": 68.2
+    },
+    {
+      "epoch": 2,
+      "step": 148,
+      "val_loss": 0.20578618154092948,
+      "val_acc_vs_teacher": 0.7384615384615385,
+      "val_f1_vs_teacher": 0.6595238095238095,
+      "val_acc_vs_gold": 0.6923076923076923,
+      "val_invalid_rate": 0.06153846153846154,
+      "elapsed_s": 135.3
+    },
+    {
+      "epoch": 3,
+      "step": 222,
+      "val_loss": 0.18717686258291413,
+      "val_acc_vs_teacher": 0.7230769230769231,
+      "val_f1_vs_teacher": 0.629090909090909,
+      "val_acc_vs_gold": 0.6846153846153846,
+      "val_invalid_rate": 0.05384615384615385,
+      "elapsed_s": 203.2
+    }
+  ],
+  "gpu": "NVIDIA GeForce RTX 3060 Laptop GPU"
+}
