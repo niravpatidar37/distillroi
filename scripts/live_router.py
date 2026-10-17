@@ -82,6 +82,7 @@ async def main_async(n: int, concurrency: int, offset: int) -> None:
         "concurrency": concurrency,
         "wall_s": round(wall, 2),
         "escalation_rate": sum(x["source"] == "teacher" for x in results) / len(results),
+        "escalation_attempt_rate": sum(x["reason"] not in (None, "accepted") for x in results) / len(results),
         "degraded": sum(x["source"] in ("student_degraded", "none") for x in results),
         "routed_accuracy": accuracy([x["gold"] for x in results], [x["label"] for x in results]),
         "student_only_accuracy_on_accepted": accuracy(

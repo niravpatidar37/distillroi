@@ -23,7 +23,7 @@ from distill.data import read_jsonl  # noqa: E402
 from distill.metrics import accuracy, percentile  # noqa: E402
 from distill.settings import PROJECT, get_settings, load_local_env  # noqa: E402
 from distill.spend import SpendLedger  # noqa: E402
-from distill.teacher import GroqTeacher, Usage  # noqa: E402
+from distill.teacher import DailyQuotaExhausted, GroqTeacher, Usage  # noqa: E402
 
 
 async def main_async(n: int, levels: list[int]) -> None:
@@ -48,6 +48,7 @@ async def main_async(n: int, levels: list[int]) -> None:
         "levels": [],
     }
     all_usage: list[Usage] = []
+    waits: list[float] = []
     offset = 0
     for c in levels:
         chunk = rows[offset : offset + n]
@@ -56,8 +57,18 @@ async def main_async(n: int, levels: list[int]) -> None:
         res: list[tuple[str | None, Usage]] = [(None, Usage())] * len(chunk)
 
         async def one(i: int, text: str, sem: asyncio.Semaphore = sem, res: list = res) -> None:  # type: ignore[type-arg]
-            async with sem:
-                res[i] = await teacher.classify_one(text)
+            for _ in range(
+                40
+            ):  # free-tier TPD window: wait for it to slide, then retry (latency = successful call)
+                try:
+                    async with sem:
+                        res[i] = await teacher.classify_one(text)
+                    return
+                except DailyQuotaExhausted as e:
+                    waits.append(e.retry_in_s or 600.0)
+                    print(f"TPD full; waiting {(e.retry_in_s or 600.0):.0f}s", flush=True)
+                    await asyncio.sleep((e.retry_in_s or 600.0) + 10)
+            raise RuntimeError("teacher quota never freed")
 
         await asyncio.gather(*(one(i, str(r["text"])) for i, r in enumerate(chunk)))
         lat = [u.latency_s * 1000 for _, u in res]
@@ -79,6 +90,7 @@ async def main_async(n: int, levels: list[int]) -> None:
     out["mean_reasoning_tokens"] = sum(u.reasoning_tokens for u in all_usage) / k
     out["usd_per_request_at_paid_rate"] = sum(u.usd for u in all_usage) / k
     out["total_usd"] = sum(u.usd for u in all_usage)
+    out["free_tier_tpd_waits"] = len(waits)
     (ROOT / "results/teacher_online_bench.json").write_text(json.dumps(out, indent=2) + "\n")
     print(json.dumps({k2: v for k2, v in out.items() if k2 != "levels"}, indent=2))
 
