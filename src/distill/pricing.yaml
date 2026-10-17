@@ -1,0 +1,19 @@
+# PRICES ARE ESTIMATES - verify against provider pricing pages before trusting any dollar figure.
+# Retrieved 2026-10-17.
+teacher:
+  provider: groq
+  model: openai/gpt-oss-120b
+  usd_per_m_input: 0.15
+  usd_per_m_output: 0.60   # reasoning tokens are billed as output tokens
+  source: https://console.groq.com/docs/model/openai/gpt-oss-120b
+  note: "Groq paid on-demand rate. The key used here is free tier, but every call is priced at the paid rate."
+
+gpu:
+  name: "Cloud Run GPU, NVIDIA L4, non-zonal redundancy, instance-based billing, Tier 1 region (us-central1)"
+  gpu_usd_per_s: 0.0001867
+  # Cloud Run requires at least 4 vCPU and 16 GiB memory for an L4 instance.
+  vcpu: 4
+  vcpu_usd_per_s: 0.000018
+  mem_gib: 16
+  mem_usd_per_gib_s: 0.000002
+  source: https://cloud.google.com/run/pricing
