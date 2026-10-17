@@ -71,7 +71,7 @@ ignore = ["S101", "RUF001", "RUF002", "RUF003"]
 
 [tool.ruff.lint.per-file-ignores]
 "tests/**" = ["S", "B"]
-"scripts/**" = ["S311", "S603", "S607"]
+"scripts/**" = ["S311", "S603", "S607", "E501"]
 
 [tool.mypy]
 python_version = "3.12"
@@ -90,3 +90,7 @@ addopts = "-m 'not gpu and not integration'"
 
 [tool.bandit]
 exclude_dirs = ["tests", ".venv"]
+
+[tool.ruff.lint.isort]
+# the local `wandb/` offline-runs directory would otherwise make ruff treat wandb as first-party
+known-third-party = ["wandb"]

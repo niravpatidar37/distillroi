@@ -98,7 +98,9 @@ async def predict(splits: list[str]) -> None:
 
 
 async def sweep(levels: list[int], min_requests: int) -> None:
-    texts = [str(r["text"]) for r in read_jsonl(SPLITS["test_full"])]
+    # Load-generation text: real banking77 training-split queries that were never teacher-labelled or trained on
+    # (pool rows after index 5000), so the sweep never touches the test set.
+    texts = [str(r["text"]) for r in read_jsonl(ROOT / "data/processed/pool.jsonl")[5000:]]
     client = StudentClient(
         BASE,
         MODEL,
