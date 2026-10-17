@@ -1,0 +1,13 @@
+{
+  "teacher_labelled_attempted": 1300,
+  "dropped_invalid_teacher_output": 1,
+  "kept": 1299,
+  "train": 1169,
+  "val": 130,
+  "labels_covered_in_train": 77,
+  "min_examples_per_label_train": 2,
+  "teacher_label_agreement_with_gold_on_kept": 0.8021555042340262,
+  "seed": 2024,
+  "val_frac": 0.1,
+  "test_set": "data/processed/test_770.jsonl (banking77 test split, gold; untouched until Phase 4)"
+}

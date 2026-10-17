@@ -1,0 +1,17 @@
+{
+  "split": "pool",
+  "batch_size": 50,
+  "batches": 26,
+  "cached_batches": 3,
+  "input_tokens": 30461,
+  "output_tokens": 26581,
+  "reasoning_tokens": 18120,
+  "usd": 0.020517749999999998,
+  "items": 1300,
+  "valid": 1299,
+  "failed": 1,
+  "quota_waits": 28,
+  "quota_wait_s": 17067.551999993993,
+  "stopped": null,
+  "elapsed_s": 17220.8
+}

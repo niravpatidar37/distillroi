@@ -1,0 +1,130 @@
+{"text": "I have just read my statement and there is a payment I don't recognise.", "gold": "card_payment_not_recognised", "id": "train-fd7db018df810cce", "teacher": "card_payment_not_recognised"}
+{"text": "I tried to get gas but my money was gone!", "gold": "topping_up_by_card", "id": "train-326f84e72ced6296", "teacher": "card_payment_fee_charged"}
+{"text": "Can I pay for my gas using my Apple watch?", "gold": "apple_pay_or_google_pay", "id": "train-912ec8de3790f065", "teacher": "apple_pay_or_google_pay"}
+{"text": "What does the bank charge for lost or stolen card replacements?", "gold": "order_physical_card", "id": "train-975d61b89bd16eee", "teacher": "card_payment_fee_charged"}
+{"text": "I tried my PIN too many times and now my card won't work!", "gold": "pin_blocked", "id": "train-74ade53af3e6ae4d", "teacher": "pin_blocked"}
+{"text": "My new card came in.  How do I activate?", "gold": "activate_my_card", "id": "train-45cad631fc7ba1ec", "teacher": "activate_my_card"}
+{"text": "why don't you accept american express for adding money to my account", "gold": "supported_cards_and_currencies", "id": "train-dc6345800ad71d1d", "teacher": "supported_cards_and_currencies"}
+{"text": "Hi, I'm trying to by some crypto and the app isn't allowing it. I really want to exchange this, what am I doing wrong?", "gold": "beneficiary_not_allowed", "id": "train-c2ae7aa2c2b8fdc6", "teacher": "exchange_via_app"}
+{"text": "My account is  new  why can I  not top up", "gold": "pending_top_up", "id": "train-d6369c1074d68039", "teacher": "top_up_failed"}
+{"text": "What is the refund policy?", "gold": "request_refund", "id": "train-235d0f0faf774748", "teacher": "request_refund"}
+{"text": "please cancel the transaction", "gold": "cancel_transfer", "id": "train-72e5c458f6e5e1cf", "teacher": "cancel_transfer"}
+{"text": "Can I top up?", "gold": "top_up_limits", "id": "train-eb1bb6d07e2daa0e", "teacher": "topping_up_by_card"}
+{"text": "I got the incorrect amount of money given to me from my account", "gold": "wrong_amount_of_cash_received", "id": "train-cb309186b53e8577", "teacher": "wrong_amount_of_cash_received"}
+{"text": "How do I cancel a transaction?", "gold": "cancel_transfer", "id": "train-a2802fe39a8d68d2", "teacher": "cancel_transfer"}
+{"text": "No option to top up with a cheque ?", "gold": "top_up_by_cash_or_cheque", "id": "train-12c81e34f227cbac", "teacher": "top_up_by_cash_or_cheque"}
+{"text": "my cash balance less than what I thought", "gold": "wrong_amount_of_cash_received", "id": "train-4b7ddf95ca8bd344", "teacher": "balance_not_updated_after_bank_transfer"}
+{"text": "Hello, i just checked my statement and there seems to be a payment from my card that I have never seen before.", "gold": "card_payment_not_recognised", "id": "train-3f9e4b1989ce17c5", "teacher": "card_payment_not_recognised"}
+{"text": "My PIN number was incorrect, and I can't access it.", "gold": "pin_blocked", "id": "train-9cfbb91780dce0e2", "teacher": "pin_blocked"}
+{"text": "Can I open up an account for my child?", "gold": "age_limit", "id": "train-bb2a332e74138066", "teacher": "age_limit"}
+{"text": "My top up is incomplete.", "gold": "pending_top_up", "id": "train-a22239f44f72583f", "teacher": "top_up_failed"}
+{"text": "I tried withdrawing but my cash is not showing up?", "gold": "wrong_amount_of_cash_received", "id": "train-b83eb4b98d8eaafd", "teacher": "pending_cash_withdrawal"}
+{"text": "Is auto top up a provided service?", "gold": "automatic_top_up", "id": "train-47fd607d501d280d", "teacher": "automatic_top_up"}
+{"text": "My PIN has been blocked, what should I do?", "gold": "pin_blocked", "id": "train-1f298cc181d73398", "teacher": "pin_blocked"}
+{"text": "Would it be possible to activate my card?", "gold": "activate_my_card", "id": "train-a0fb7f8175bb939e", "teacher": "activate_my_card"}
+{"text": "Do I get charged if I top up with my European bank card?", "gold": "top_up_by_card_charge", "id": "train-c7d2223f34c832d9", "teacher": "top_up_by_card_charge"}
+{"text": "My product hasn't arrived even though I ordered it a while ago. I want a refund!", "gold": "request_refund", "id": "train-982410321011e1bb", "teacher": "request_refund"}
+{"text": "The top-up I ordered didn't process.", "gold": "top_up_failed", "id": "train-d74c43239396e387", "teacher": "top_up_failed"}
+{"text": "Why am I charged a fee for using my card on some purchases?", "gold": "card_payment_fee_charged", "id": "train-a1d00a40907ce0c2", "teacher": "card_payment_fee_charged"}
+{"text": "Where can I find the verification code for a top-up?", "gold": "verify_top_up", "id": "train-54b4c55311021a79", "teacher": "verify_top_up"}
+{"text": "Your system is broken. My transfers keep failing, 5 times now.", "gold": "failed_transfer", "id": "train-708f3a5e3dc4b40c", "teacher": "failed_transfer"}
+{"text": "How do I order my card?", "gold": "order_physical_card", "id": "train-72cee441ccc890de", "teacher": "order_physical_card"}
+{"text": "How can I close my account, I don't want it.", "gold": "terminate_account", "id": "train-ba30bf98d6ed40a4", "teacher": "terminate_account"}
+{"text": "Let me know when I get charged extra for payments. I saw on the app a fee I wasn't forewarned about.", "gold": "card_payment_fee_charged", "id": "train-19f3d826b2aa7635", "teacher": "extra_charge_on_statement"}
+{"text": "I have a reverted top up I made and wanted to know why it didn't go through.", "gold": "top_up_reverted", "id": "train-c751395590f6720b", "teacher": "top_up_reverted"}
+{"text": "my phone has been stolen by someone", "gold": "lost_or_stolen_phone", "id": "train-6b1e938800c5ad02", "teacher": "lost_or_stolen_phone"}
+{"text": "There is a mysterious debit transaction on my statement", "gold": "direct_debit_payment_not_recognised", "id": "train-e83300989461f5e0", "teacher": "direct_debit_payment_not_recognised"}
+{"text": "I want a refund on a direct debit.", "gold": "direct_debit_payment_not_recognised", "id": "train-62d1e4c5b4559538", "teacher": "request_refund"}
+{"text": "Can you tell me what currencies I can use to add money?", "gold": "supported_cards_and_currencies", "id": "train-b4f51441fa4dca51", "teacher": "fiat_currency_support"}
+{"text": "I need assistance addressing a direct debit that I did not do myself.", "gold": "direct_debit_payment_not_recognised", "id": "train-a107f65d4a56f32c", "teacher": "direct_debit_payment_not_recognised"}
+{"text": "Some cash was missing at ATM.", "gold": "wrong_amount_of_cash_received", "id": "train-5e9a172d391b4a2a", "teacher": "cash_withdrawal_not_recognised"}
+{"text": "Where do i go to receive a virtual card", "gold": "getting_virtual_card", "id": "train-31daa3d9328aecbf", "teacher": "getting_virtual_card"}
+{"text": "The balance does not appear to have updated.", "gold": "balance_not_updated_after_bank_transfer", "id": "train-2682669dc7178998", "teacher": "balance_not_updated_after_bank_transfer"}
+{"text": "Explain the card PIN to me.", "gold": "get_physical_card", "id": "train-c427ba494a3b988f", "teacher": "change_pin"}
+{"text": "How can I convert currencies?", "gold": "exchange_via_app", "id": "train-2cc2463f6fffc08a", "teacher": "exchange_via_app"}
+{"text": "A receiver let me know that they didn't receive the full transfer I completed and that it was actually a bit less than what I sent. At this point I have to make another transfer to make up for the amount missing. Can you please follow up with what's going  on here?", "gold": "transfer_fee_charged", "id": "train-83f79e27596b6760", "teacher": "transfer_fee_charged"}
+{"text": "Is there a way to tell where the money came from?", "gold": "verify_source_of_funds", "id": "train-85e79562e7c16156", "teacher": "verify_source_of_funds"}
+{"text": "How do I top up using my card?", "gold": "topping_up_by_card", "id": "train-223771d805922ca2", "teacher": "topping_up_by_card"}
+{"text": "How do I find out where my funds came from?", "gold": "verify_source_of_funds", "id": "train-128f5b7173fb7d77", "teacher": "verify_source_of_funds"}
+{"text": "What are the cards and currencies that you support?", "gold": "supported_cards_and_currencies", "id": "train-19240b665f00dce4", "teacher": "supported_cards_and_currencies"}
+{"text": "Does it matter which card I use", "gold": "visa_or_mastercard", "id": "train-4172517e5730929e", "teacher": "supported_cards_and_currencies"}
+{"text": "My cash withdrawal was not entirely complete", "gold": "wrong_amount_of_cash_received", "id": "train-a0f83ec9469cee27", "teacher": "cash_withdrawal_not_recognised"}
+{"text": "Are you available in my country?", "gold": "country_support", "id": "train-0101640a3198aa90", "teacher": "country_support"}
+{"text": "I'm trying to make a bank transfer but It's not going through. Could there not be enough funds to transfer or something? Have I done it too many times?", "gold": "failed_transfer", "id": "train-e096535e436cad66", "teacher": "failed_transfer"}
+{"text": "Hi. I noticed I have a duplicate charge which I have not made twice. Who should I talk to take care of this?", "gold": "transaction_charged_twice", "id": "train-ce3c21a530bf7044", "teacher": "transaction_charged_twice"}
+{"text": "I need to terminate my account.", "gold": "terminate_account", "id": "train-11d21179a32d480b", "teacher": "terminate_account"}
+{"text": "Which countries are you in?", "gold": "country_support", "id": "train-aae062e9dd4f5851", "teacher": "country_support"}
+{"text": "I made a card payment, but it has been declined?", "gold": "declined_card_payment", "id": "train-0f53ae7577115594", "teacher": "declined_card_payment"}
+{"text": "Hi, I want to inquire about my balance. Some cash was deposited and it hasn't updated yet.", "gold": "balance_not_updated_after_cheque_or_cash_deposit", "id": "train-5994f682a63e1564", "teacher": "balance_not_updated_after_cheque_or_cash_deposit"}
+{"text": "How much does it cost to top up a US-issued card?", "gold": "top_up_by_card_charge", "id": "train-7e191d487e5376e6", "teacher": "top_up_by_card_charge"}
+{"text": "My statement shows a strange direct debit.", "gold": "direct_debit_payment_not_recognised", "id": "train-35398a1feccc8e53", "teacher": "direct_debit_payment_not_recognised"}
+{"text": "What is the process for setting up and account for my child?", "gold": "age_limit", "id": "train-0842b783b0326094", "teacher": "age_limit"}
+{"text": "i've waited 2 days for a transfer to reach a retailers account, am i going to have to wait longer.", "gold": "transfer_not_received_by_recipient", "id": "train-128e5052b82d6dd0", "teacher": "pending_transfer"}
+{"text": "I have been trying to exchange this for crypto but the app won't work could you please help me?", "gold": "beneficiary_not_allowed", "id": "train-e7db2ce0c7625b99", "teacher": "exchange_via_app"}
+{"text": "Are refunds allowed for certain items.", "gold": "request_refund", "id": "train-60c6dec4c80c40db", "teacher": "request_refund"}
+{"text": "Can i get payed through this system?", "gold": "receiving_money", "id": "train-72fb989472e1e2ba", "teacher": "receiving_money"}
+{"text": "Do you have EUR currency available for me?", "gold": "fiat_currency_support", "id": "train-f64e72ec17448d0c", "teacher": "fiat_currency_support"}
+{"text": "Is there a way to top-up when it reaches a certain balance?", "gold": "automatic_top_up", "id": "train-bc49a095d4f1d985", "teacher": "automatic_top_up"}
+{"text": "How do I exchange currencies using this app?", "gold": "exchange_via_app", "id": "train-895a2d9c4244ce79", "teacher": "exchange_via_app"}
+{"text": "Why has my new card still not come?", "gold": "card_arrival", "id": "train-b8b8558dbe2097a7", "teacher": "card_arrival"}
+{"text": "your company is awful, i would like to delete my account please", "gold": "terminate_account", "id": "train-acb104018bddfefe", "teacher": "terminate_account"}
+{"text": "Please tell me where I can update my details since I moved.", "gold": "edit_personal_details", "id": "train-e35ceffa2e6d952e", "teacher": "edit_personal_details"}
+{"text": "I was overcharged an additional pound.", "gold": "extra_charge_on_statement", "id": "train-ed3829d1ac9c271c", "teacher": "extra_charge_on_statement"}
+{"text": "Could you please tell me why my card payment didn't work?", "gold": "declined_card_payment", "id": "train-d3e5fdcfdd740fb0", "teacher": "declined_card_payment"}
+{"text": "I've been to several different countries, can I exchange the cash with a discount for a large transaction?", "gold": "exchange_charge", "id": "train-6d93b7456183ad33", "teacher": "exchange_charge"}
+{"text": "I sent payment with EU transfer and they still haven't received it. How long does it take?", "gold": "pending_transfer", "id": "train-3952b6105fc63461", "teacher": "transfer_timing"}
+{"text": "I am interested in giving a second card to my daughter, how can I make this happen?", "gold": "getting_spare_card", "id": "train-290311f641045da4", "teacher": "getting_spare_card"}
+{"text": "I want to change the wrong exchange rate.", "gold": "card_payment_wrong_exchange_rate", "id": "train-0e621c1e0ac47206", "teacher": "card_payment_wrong_exchange_rate"}
+{"text": "Can you tell me the countries you operate in?", "gold": "country_support", "id": "train-bd77422784a828f1", "teacher": "country_support"}
+{"text": "How can I link the new card?", "gold": "card_linking", "id": "train-1fb324ba8aa151b9", "teacher": "card_linking"}
+{"text": "Why has my beneficiary been denied?", "gold": "beneficiary_not_allowed", "id": "train-88253692e6d1bb58", "teacher": "beneficiary_not_allowed"}
+{"text": "How can I transfer some money into a foreign account?", "gold": "transfer_into_account", "id": "train-648f5b40ff78dd8b", "teacher": "transfer_into_account"}
+{"text": "I require verification of my source of funds.", "gold": "verify_source_of_funds", "id": "train-daa96f24a85c89fb", "teacher": "verify_source_of_funds"}
+{"text": "Will I be charged a fee to top up using a debit or credit card?", "gold": "top_up_by_card_charge", "id": "train-d75c1ba68a1abd71", "teacher": "top_up_by_card_charge"}
+{"text": "My transfer failed to a beneficiary", "gold": "beneficiary_not_allowed", "id": "train-d7e47009c4194cf0", "teacher": "failed_transfer"}
+{"text": "Is there a way to change my PIN without having to go to the bank?", "gold": "change_pin", "id": "train-acf53dce966f23a8", "teacher": "change_pin"}
+{"text": "I bought an item then noticed the exchange rate was wrong.", "gold": "card_payment_wrong_exchange_rate", "id": "train-0808075d97ffc893", "teacher": "card_payment_wrong_exchange_rate"}
+{"text": "Will there be a cost if I exchange currency?", "gold": "exchange_charge", "id": "train-cb207d0b774b6c27", "teacher": "exchange_charge"}
+{"text": "Please tell me what this direct debit in my statement is", "gold": "direct_debit_payment_not_recognised", "id": "train-e4a9a78c5de89bb8", "teacher": "direct_debit_payment_not_recognised"}
+{"text": "My card payment has failed.", "gold": "declined_card_payment", "id": "train-427a1be1cc313970", "teacher": "declined_card_payment"}
+{"text": "What is the limit on Auto top?", "gold": "automatic_top_up", "id": "train-9b0b8103a06d9b10", "teacher": "automatic_top_up"}
+{"text": "Will the transfer show up in my account soon?", "gold": "transfer_timing", "id": "train-b0eb83040877ff53", "teacher": "pending_transfer"}
+{"text": "How long does it take for the card to come?", "gold": "card_delivery_estimate", "id": "train-79b1b080213fe2db", "teacher": "card_delivery_estimate"}
+{"text": "Why does it say my transfer failed?", "gold": "failed_transfer", "id": "train-45310a11ff40124a", "teacher": "failed_transfer"}
+{"text": "Is USD free to top up with a US card?", "gold": "top_up_by_card_charge", "id": "train-7fd1cfc6873cf932", "teacher": "top_up_by_card_charge"}
+{"text": "Why isn't this accepting my identity?", "gold": "unable_to_verify_identity", "id": "train-1f4e44ec54cfd680", "teacher": "unable_to_verify_identity"}
+{"text": "My card will expire next month, will I need to order a new one?", "gold": "card_about_to_expire", "id": "train-3a34dc63384f9ca4", "teacher": "card_about_to_expire"}
+{"text": "I want to know which currencies and cards are supported, can you provide a list?", "gold": "supported_cards_and_currencies", "id": "train-a2d0f5e4b6733af2", "teacher": "supported_cards_and_currencies"}
+{"text": "Why am I unable to withdraw my money through this card?", "gold": "declined_cash_withdrawal", "id": "train-29944e4d75bfe530", "teacher": "declined_cash_withdrawal"}
+{"text": "Hi, i found a large amount payment in my old statements which i am sure was not made by me. I am aware that the time has passed but is there a way to raise a dispute for this payment now?", "gold": "direct_debit_payment_not_recognised", "id": "train-49e41aeef5146b5d", "teacher": "card_payment_not_recognised"}
+{"text": "I am trying to exchange AUD for GBP, how do I do that?", "gold": "exchange_via_app", "id": "train-6f9662bac9aad981", "teacher": "exchange_via_app"}
+{"text": "The transger I tried to make failed.", "gold": "failed_transfer", "id": "train-e16ddf4d1926367d", "teacher": "failed_transfer"}
+{"text": "My passcode is not being accepted", "gold": "passcode_forgotten", "id": "train-bd2d6334b1266cb1", "teacher": "passcode_forgotten"}
+{"text": "Mastercard is my preferred company.", "gold": "visa_or_mastercard", "id": "train-af82134c13916d2b", "teacher": "visa_or_mastercard"}
+{"text": "If the ATM only gave me 10 pounds instead of the 30 I requested, what do I do?", "gold": "wrong_amount_of_cash_received", "id": "train-2e682b8408bdc1bc", "teacher": "wrong_amount_of_cash_received"}
+{"text": "when does my balance update for a transfer", "gold": "balance_not_updated_after_bank_transfer", "id": "train-1b448692205b60d6", "teacher": "balance_not_updated_after_bank_transfer"}
+{"text": "My refund has not arrived, and I am unsure why. Who do I contact?", "gold": "Refund_not_showing_up", "id": "train-e8c10455ffbddab6", "teacher": "request_refund"}
+{"text": "Why was the exchange wrong for the item I purchased?", "gold": "card_payment_wrong_exchange_rate", "id": "train-0ba2d382b078bc5e", "teacher": "card_payment_wrong_exchange_rate"}
+{"text": "I've just been married and need to update my name", "gold": "edit_personal_details", "id": "train-5113f8b2309fd9d6", "teacher": "edit_personal_details"}
+{"text": "Is there a reason that my transfer failed?", "gold": "failed_transfer", "id": "train-6a8c593426f1361f", "teacher": "failed_transfer"}
+{"text": "How do I see my source of funds?", "gold": "verify_source_of_funds", "id": "train-ecb75d1c9738ddf9", "teacher": "verify_source_of_funds"}
+{"text": "Can an apple watch be used to tup-up?", "gold": "apple_pay_or_google_pay", "id": "train-4b4cb81fadc6b60c", "teacher": "apple_pay_or_google_pay"}
+{"text": "What happens when I money transaction doesn't show up on the receiving side?", "gold": "transfer_not_received_by_recipient", "id": "train-4fba6896ad2357dd", "teacher": "transfer_not_received_by_recipient"}
+{"text": "How do I use my card to top up?", "gold": "topping_up_by_card", "id": "train-1c688020a6744051", "teacher": "topping_up_by_card"}
+{"text": "I really need to top-up my card today urgently but my card keeps getting declined!! Can you please resolve this problem or try an alternative", "gold": "top_up_failed", "id": "train-b395e55d71ac830b", "teacher": "top_up_failed"}
+{"text": "Where's the money I transferred into my account?", "gold": "balance_not_updated_after_bank_transfer", "id": "train-78aab9862fe39e45", "teacher": "transfer_into_account"}
+{"text": "When will the transaction post to my account?", "gold": "pending_transfer", "id": "train-5968928a889baa4a", "teacher": "pending_transfer"}
+{"text": "Please help me, there is a transaction in the incorrect account.", "gold": "cancel_transfer", "id": "train-d0be6ad63fd7d33b", "teacher": "card_payment_not_recognised"}
+{"text": "How did you guys get your exchange rate?", "gold": "exchange_rate", "id": "train-e12592cd02e413de", "teacher": "exchange_rate"}
+{"text": "After making a transfer from a UK account it's not showing up. How long do these transfers normally take for you? I want to be certain everything is all right.", "gold": "balance_not_updated_after_bank_transfer", "id": "train-841099d157e71369", "teacher": "transfer_timing"}
+{"text": "I need more physical cards.", "gold": "getting_spare_card", "id": "train-ee18c7304256569a", "teacher": "getting_spare_card"}
+{"text": "Do you charge extra for topping up with a debit or credit card?", "gold": "top_up_by_card_charge", "id": "train-bf3b7771b9d24854", "teacher": "top_up_by_card_charge"}
+{"text": "I exchange my currency quite a bit.  Do I get an exchange price break?", "gold": "exchange_charge", "id": "train-28d3d92110d0a7b6", "teacher": "exchange_charge"}
+{"text": "Where do I find our how to get a physical card?", "gold": "order_physical_card", "id": "train-a3990c118081450c", "teacher": "get_physical_card"}
+{"text": "Why do I get declined when I try to withdraw cash?", "gold": "declined_cash_withdrawal", "id": "train-85991045cc0a6ad0", "teacher": "declined_cash_withdrawal"}
+{"text": "Can I use a transfer to receive my transfer?", "gold": "receiving_money", "id": "train-2f9b408722cbe398", "teacher": "receiving_money"}
+{"text": "How will I know what the exchange rate is?", "gold": "exchange_rate", "id": "train-2692ffc1fc7ceea7", "teacher": "exchange_rate"}
+{"text": "When using my card I was charged a fee for doing so, why?", "gold": "card_payment_fee_charged", "id": "train-20e613ea5e5a4f11", "teacher": "card_payment_fee_charged"}
+{"text": "Tell me why my card payment was declined.", "gold": "declined_card_payment", "id": "train-52a1224134495858", "teacher": "declined_card_payment"}
+{"text": "I tried to use my debit card, but the payment did not work.", "gold": "reverted_card_payment?", "id": "train-d1511dac5c2797aa", "teacher": "declined_card_payment"}
+{"text": "How do I receive more physical cards", "gold": "getting_spare_card", "id": "train-a3151869d23d0747", "teacher": "getting_spare_card"}

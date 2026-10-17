@@ -1,0 +1,15 @@
+{
+  "batches": 16,
+  "cached_batches": 0,
+  "input_tokens": 20120,
+  "output_tokens": 17878,
+  "reasoning_tokens": 12308,
+  "usd": 0.013744799999999998,
+  "items": 770,
+  "valid": 765,
+  "failed": 5,
+  "stopped": null,
+  "elapsed_s": 425.1,
+  "accuracy_vs_gold": 0.8116883116883117,
+  "macro_f1_vs_gold": 0.8012053246712348
+}
