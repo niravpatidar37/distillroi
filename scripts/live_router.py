@@ -49,16 +49,25 @@ async def main_async(n: int, concurrency: int, offset: int) -> None:
     rows = read_jsonl(ROOT / "data/processed/test_770.jsonl")[offset : offset + n]
     sem = asyncio.Semaphore(concurrency)
     results: list[dict] = [{} for _ in rows]
+    quota_retries: list[str] = []
     async with httpx.AsyncClient(base_url=URL, timeout=60) as client:
         ready = await client.get("/readyz")
         assert ready.status_code == 200, ready.text
 
         async def one(i: int, r: dict) -> None:
             async with sem:
-                t0 = time.perf_counter()
-                resp = await client.post("/v1/classify", json={"text": r["text"]})
-                ms = (time.perf_counter() - t0) * 1000
-                body = resp.json() if resp.status_code == 200 else {}
+                for attempt in range(30):  # noqa: B007 - used after the loop
+                    t0 = time.perf_counter()
+                    resp = await client.post("/v1/classify", json={"text": r["text"]})
+                    ms = (time.perf_counter() - t0) * 1000
+                    body = resp.json() if resp.status_code == 200 else {}
+                    # On the FREE Groq tier the teacher's daily token bucket refills slowly; the router then
+                    # (correctly) degrades. For this measurement we wait and retry so escalations are real calls.
+                    degraded = body.get("source") in ("student_degraded", "none") or resp.status_code == 503
+                    if not degraded:
+                        break
+                    quota_retries.append(r["id"])
+                    await asyncio.sleep(150)
                 results[i] = {
                     "id": r["id"],
                     "gold": r["gold"],
@@ -68,6 +77,7 @@ async def main_async(n: int, concurrency: int, offset: int) -> None:
                     "source": body.get("source"),
                     "reason": body.get("reason"),
                     "conf": body.get("student_confidence"),
+                    "attempts": attempt + 1,
                 }
 
         t0 = time.perf_counter()
@@ -83,6 +93,7 @@ async def main_async(n: int, concurrency: int, offset: int) -> None:
         "wall_s": round(wall, 2),
         "escalation_rate": sum(x["source"] == "teacher" for x in results) / len(results),
         "escalation_attempt_rate": sum(x["reason"] not in (None, "accepted") for x in results) / len(results),
+        "free_tier_quota_retries": len(quota_retries),
         "degraded": sum(x["source"] in ("student_degraded", "none") for x in results),
         "routed_accuracy": accuracy([x["gold"] for x in results], [x["label"] for x in results]),
         "student_only_accuracy_on_accepted": accuracy(

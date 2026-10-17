@@ -1,0 +1,29 @@
+{
+  "mode": "online, 1 query/request",
+  "model": "openai/gpt-oss-120b",
+  "reasoning_effort": "low",
+  "levels": [
+    {
+      "concurrency": 1,
+      "n": 10,
+      "p50_ms": 443.0,
+      "p95_ms": 565.5,
+      "acc_vs_gold": 0.8,
+      "invalid": 0
+    },
+    {
+      "concurrency": 4,
+      "n": 10,
+      "p50_ms": 416.8,
+      "p95_ms": 874.1,
+      "acc_vs_gold": 0.7,
+      "invalid": 0
+    }
+  ],
+  "mean_input_tokens": 586.85,
+  "mean_output_tokens": 38.95,
+  "mean_reasoning_tokens": 21.8,
+  "usd_per_request_at_paid_rate": 0.00011139749999999999,
+  "total_usd": 0.00222795,
+  "free_tier_tpd_waits": 75
+}

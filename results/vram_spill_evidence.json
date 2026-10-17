@@ -1,0 +1,21 @@
+{
+  "what": "smoke run of the 1.5B config (500 train / 100 val examples, 1 epoch, 32 optimizer steps) before and after the 6 GB memory fixes",
+  "source": "console output of scripts/train.py --smoke runs on 2026-10-17 (the pre-fix summary file was overwritten by the post-fix rerun; values copied from the run output)",
+  "gpu": "NVIDIA GeForce RTX 3060 Laptop GPU, 6.44 GB physical (torch.cuda.mem_get_info), Windows WDDM driver",
+  "before": {
+    "setup": "prepare_model_for_kbit_training (fp32 embeddings), full-sequence logits, micro-batch 16, AdamW, HF generate(output_scores) for val",
+    "peak_allocated_gb": 11.9,
+    "train_plus_val_time_s": 435.8,
+    "val_acc": 0.28,
+    "spilled_to_shared_memory": true,
+    "note": "peak allocation above physical VRAM is only possible through the WDDM system-memory fallback"
+  },
+  "after": {
+    "setup": "tail-only logits (logits_to_keep), gradient checkpointing, paged 8-bit AdamW, micro-batch 8 x accum 2, allocator capped at 5.4 GB, KV-cache greedy eval",
+    "peak_allocated_gb": 1.83,
+    "peak_reserved_gb": 2.17,
+    "train_plus_val_time_s": 41.8,
+    "val_acc": 0.29,
+    "spilled_to_shared_memory": false
+  }
+}

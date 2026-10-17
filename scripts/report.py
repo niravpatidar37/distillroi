@@ -146,12 +146,12 @@ def main() -> None:
         f"({pct(q['routed_pct_of_teacher_accuracy'])} of teacher) | {q['routed']['macro_f1']:.3f} | "
         f"${routed_per_1k(1_000_000):.3f} at 1M/day (escalation {pct(esc)}) | "
         + (
-            f"live: {live['latency_ms_all']['p50']:.0f} / {live['latency_ms_all']['p95']:.0f} ms "
-            f"(c={live['concurrency']}) |"
+            f"live end-to-end at c={live['concurrency']}: {live['latency_ms_all']['p50']:.0f} / "
+            f"{live['latency_ms_all']['p95']:.0f} ms (all requests) |"
             if live
             else "not yet measured |"
         )
-        + " |",
+        + " see c=1 column |",
     ]
     (ROOT / "results/benchmark.md").write_text("\n".join(md) + "\n")
     print("\n".join(md))
@@ -177,7 +177,8 @@ def plots(bench: dict[str, Any], sweep: dict[str, Any], router: dict[str, Any]) 
     ax2 = ax1.twinx()
     ax2.plot(cs, [x["p50_ms"] for x in lv], "s--", color="tab:orange", label="p50 ms")
     ax2.plot(cs, [x["p95_ms"] for x in lv], "^--", color="tab:red", label="p95 ms")
-    ax2.set_ylabel("latency (ms)")
+    ax2.set_ylabel("latency (ms, log)")
+    ax2.set_yscale("log")
     ax1.axvline(sweep["knee"]["concurrency"], color="grey", ls=":", label="knee")
     fig.legend(loc="upper left", bbox_to_anchor=(0.12, 0.88))
     ax1.set_title("vLLM student: throughput vs latency (RTX 3060 Laptop)")
