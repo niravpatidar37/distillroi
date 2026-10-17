@@ -1,0 +1,239 @@
+{
+  "test_set": "banking77 test split, stratified 10/class = 770 queries, gold labels, untouched until Phase 4",
+  "student": {
+    "name": "q15_r16",
+    "base_model": "Qwen/Qwen2.5-1.5B-Instruct",
+    "lora_r": 16,
+    "quantization": "nf4",
+    "trainable_params": 18464768,
+    "best_epoch": 3,
+    "val_acc_vs_teacher": 0.7615384615384615,
+    "val_f1_vs_teacher": 0.7206613756613757,
+    "val_acc_vs_gold": 0.7384615384615385,
+    "val_loss": 0.17066867460667248,
+    "train_time_s": 265.0,
+    "peak_vram_gb": 1.83,
+    "peak_reserved_gb": 2.2,
+    "spilled_to_shared_memory": false,
+    "test_770_acc_hf": 0.7324675324675325,
+    "test_770_f1_hf": 0.73209591390536,
+    "test_full_acc_hf": 0.7431818181818182,
+    "test_full_f1_hf": 0.7443264781570845,
+    "selection_rule": "max val acc vs teacher; tie-break val macro-F1 vs teacher, then lower val loss (test never used)"
+  },
+  "train_examples": {
+    "teacher_labelled_attempted": 1300,
+    "dropped_invalid_teacher_output": 1,
+    "kept": 1299,
+    "train": 1169,
+    "val": 130,
+    "labels_covered_in_train": 77,
+    "min_examples_per_label_train": 2,
+    "teacher_label_agreement_with_gold_on_kept": 0.8021555042340262,
+    "seed": 2024,
+    "val_frac": 0.1,
+    "test_set": "data/processed/test_770.jsonl (banking77 test split, gold; untouched until Phase 4)"
+  },
+  "quality": {
+    "teacher": {
+      "accuracy": 0.8116883116883117,
+      "macro_f1": 0.8012053246712348
+    },
+    "student": {
+      "accuracy": 0.7324675324675325,
+      "macro_f1": 0.732862134215496
+    },
+    "routed": {
+      "accuracy": 0.8090909090909091,
+      "macro_f1": 0.7952009310639143
+    },
+    "student_pct_of_teacher_accuracy": 0.9024,
+    "routed_pct_of_teacher_accuracy": 0.9968,
+    "student_full_test_3080": {
+      "n": 3080,
+      "acc_vs_gold": 0.7425324675324675,
+      "macro_f1_vs_gold": 0.7434466886350473,
+      "invalid_rate": 0.03766233766233766,
+      "errors": 0,
+      "wall_s_at_c32": 21.59
+    },
+    "teacher_batched_ceiling_run": {
+      "batches": 16,
+      "cached_batches": 0,
+      "input_tokens": 20120,
+      "output_tokens": 17878,
+      "reasoning_tokens": 12308,
+      "usd": 0.013744799999999998,
+      "items": 770,
+      "valid": 765,
+      "failed": 5,
+      "stopped": null,
+      "elapsed_s": 425.1,
+      "accuracy_vs_gold": 0.8116883116883117,
+      "macro_f1_vs_gold": 0.8012053246712348
+    }
+  },
+  "cost": {
+    "teacher_usd_per_request": 0.00011139749999999999,
+    "teacher_usd_per_1k": 0.11139749999999998,
+    "teacher_mean_tokens": {
+      "mean_input_tokens": 586.85,
+      "mean_output_tokens": 38.95,
+      "mean_reasoning_tokens": 21.8
+    },
+    "gpu_usd_per_hour": 1.0465200000000001,
+    "gpu_price_source": "https://cloud.google.com/run/pricing",
+    "gpu_price_label": "estimate - verify against provider pricing page",
+    "measured_knee_throughput_rps": 116.89,
+    "planning_utilisation": 0.6,
+    "requests_per_day_per_instance": 6059577.6,
+    "student_usd_per_1k_fully_utilised_lower_bound": 0.002486953546068954,
+    "student_usd_per_1k_by_volume": {
+      "1000": 25.116480000000003,
+      "10000": 2.5116480000000005,
+      "100000": 0.2511648,
+      "1000000": 0.02511648,
+      "10000000": 0.005023296000000001
+    },
+    "routed_usd_per_1k_by_volume": {
+      "1000": 25.147729168831173,
+      "10000": 2.542897168831169,
+      "100000": 0.28241396883116887,
+      "1000000": 0.056365648831168826,
+      "10000000": 0.036272464831168826
+    },
+    "volume_table": [
+      {
+        "requests_per_day": 1000.0,
+        "teacher_api_usd_per_day": 0.11139749999999998,
+        "student_only_usd_per_day": 25.116480000000003,
+        "routed_usd_per_day": 25.147729168831173,
+        "instances": 1.0,
+        "teacher_usd_per_1k": 0.11139749999999998,
+        "routed_usd_per_1k": 25.147729168831173
+      },
+      {
+        "requests_per_day": 10000.0,
+        "teacher_api_usd_per_day": 1.113975,
+        "student_only_usd_per_day": 25.116480000000003,
+        "routed_usd_per_day": 25.42897168831169,
+        "instances": 1.0,
+        "teacher_usd_per_1k": 0.1113975,
+        "routed_usd_per_1k": 2.542897168831169
+      },
+      {
+        "requests_per_day": 100000.0,
+        "teacher_api_usd_per_day": 11.13975,
+        "student_only_usd_per_day": 25.116480000000003,
+        "routed_usd_per_day": 28.241396883116884,
+        "instances": 1.0,
+        "teacher_usd_per_1k": 0.1113975,
+        "routed_usd_per_1k": 0.28241396883116887
+      },
+      {
+        "requests_per_day": 1000000.0,
+        "teacher_api_usd_per_day": 111.39749999999998,
+        "student_only_usd_per_day": 25.116480000000003,
+        "routed_usd_per_day": 56.365648831168826,
+        "instances": 1.0,
+        "teacher_usd_per_1k": 0.11139749999999998,
+        "routed_usd_per_1k": 0.056365648831168826
+      },
+      {
+        "requests_per_day": 10000000.0,
+        "teacher_api_usd_per_day": 1113.975,
+        "student_only_usd_per_day": 50.232960000000006,
+        "routed_usd_per_day": 362.7246483116882,
+        "instances": 2.0,
+        "teacher_usd_per_1k": 0.11139749999999998,
+        "routed_usd_per_1k": 0.036272464831168826
+      }
+    ]
+  },
+  "latency_ms": {
+    "teacher_c1": {
+      "concurrency": 1,
+      "n": 10,
+      "p50_ms": 443.0,
+      "p95_ms": 565.5,
+      "acc_vs_gold": 0.8,
+      "invalid": 0
+    },
+    "teacher_c4": {
+      "concurrency": 4,
+      "n": 10,
+      "p50_ms": 416.8,
+      "p95_ms": 874.1,
+      "acc_vs_gold": 0.7,
+      "invalid": 0
+    },
+    "student_c1": {
+      "concurrency": 1,
+      "requests": 300,
+      "errors": 0,
+      "wall_s": 23.462,
+      "throughput_rps": 12.79,
+      "p50_ms": 77.5,
+      "p95_ms": 113.7,
+      "p99_ms": 132.4
+    },
+    "student_c4": {
+      "concurrency": 4,
+      "requests": 300,
+      "errors": 0,
+      "wall_s": 8.237,
+      "throughput_rps": 36.42,
+      "p50_ms": 105.4,
+      "p95_ms": 157.5,
+      "p99_ms": 176.8
+    },
+    "routed_live": {
+      "p50": 568.2,
+      "p95": 1707.9
+    }
+  },
+  "break_even": {
+    "formula": "V* = 24 * H / ((1 - e) * c_t); valid while V* <= one instance's daily capacity",
+    "H_gpu_usd_per_hour": 1.0465200000000001,
+    "c_t_teacher_usd_per_request": 0.00011139749999999999,
+    "student_only_requests_per_day": 225467.17834780857,
+    "routed_requests_per_day": 313374.959075474,
+    "escalation_rate_e": 0.2805194805194805,
+    "fits_one_instance": true,
+    "instances_at_break_even": 1
+  },
+  "router": {
+    "threshold": 0.82,
+    "escalation_rate_test": 0.2805194805194805,
+    "live": {
+      "n": 40,
+      "concurrency": 2,
+      "wall_s": 1222.04,
+      "escalation_rate": 0.125,
+      "escalation_attempt_rate": 0.125,
+      "free_tier_quota_retries": 14,
+      "degraded": 0,
+      "routed_accuracy": 0.85,
+      "student_only_accuracy_on_accepted": 0.8571428571428571,
+      "latency_ms": {
+        "student": {
+          "n": 35,
+          "p50": 523.7,
+          "p95": 1015.8
+        },
+        "teacher": {
+          "n": 5,
+          "p50": 1661.9,
+          "p95": 2182.8
+        }
+      },
+      "latency_ms_all": {
+        "p50": 568.2,
+        "p95": 1707.9
+      },
+      "teacher_usd_this_run": 0.0005665500000000059,
+      "teacher_usd_per_1k_routed_requests": 0.014163750000000148
+    }
+  },
+  "hardware_note": "Throughput/latency measured on an RTX 3060 Laptop (6 GB) under Docker Desktop/WSL2; the cost model prices that throughput at Cloud Run L4 rates (L4 is a faster, 24 GB card, so this is conservative)."
+}

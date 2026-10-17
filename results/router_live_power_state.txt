@@ -1,0 +1,12 @@
+# captured 2026-10-17T14:10:10Z right after scripts/live_router.py finished
+## Win32_Battery
+BatteryStatus            : 1
+EstimatedChargeRemaining : 82
+## nvidia-smi
+power.draw [W], power.default_limit [W], pstate, clocks.current.sm [MHz]
+11.71 W, 80.00 W, P8, 210 MHz
+## direct vLLM chat completion wall time (s), 3 calls
+0.765258
+0.663958
+0.666334
+| N/A   49C    P5             29W /   30W |    4127MiB /   6144MiB |     97%      Default |

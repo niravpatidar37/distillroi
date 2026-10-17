@@ -1,0 +1,471 @@
+{
+  "n": 40,
+  "concurrency": 2,
+  "wall_s": 1222.04,
+  "escalation_rate": 0.125,
+  "escalation_attempt_rate": 0.125,
+  "free_tier_quota_retries": 14,
+  "degraded": 0,
+  "routed_accuracy": 0.85,
+  "student_only_accuracy_on_accepted": 0.8571428571428571,
+  "latency_ms": {
+    "student": {
+      "n": 35,
+      "p50": 523.7,
+      "p95": 1015.8
+    },
+    "teacher": {
+      "n": 5,
+      "p50": 1661.9,
+      "p95": 2182.8
+    }
+  },
+  "latency_ms_all": {
+    "p50": 568.2,
+    "p95": 1707.9
+  },
+  "teacher_usd_this_run": 0.0005665500000000059,
+  "teacher_usd_per_1k_routed_requests": 0.014163750000000148,
+  "rows": [
+    {
+      "id": "test-5b5a92da09c78b89",
+      "gold": "transfer_timing",
+      "status": 200,
+      "ms": 1699.5647000148892,
+      "label": "transfer_timing",
+      "source": "student",
+      "reason": "accepted",
+      "conf": 0.9910596368242156,
+      "attempts": 1
+    },
+    {
+      "id": "test-cca4b1ab40bcb494",
+      "gold": "Refund_not_showing_up",
+      "status": 200,
+      "ms": 1700.1749000046402,
+      "label": "Refund_not_showing_up",
+      "source": "student",
+      "reason": "accepted",
+      "conf": 0.9583599188946915,
+      "attempts": 1
+    },
+    {
+      "id": "test-d98ecab3a282bc4a",
+      "gold": "exchange_rate",
+      "status": 200,
+      "ms": 69.90819983184338,
+      "label": "exchange_rate",
+      "source": "student",
+      "reason": "accepted",
+      "conf": 0.9583499452487267,
+      "attempts": 1
+    },
+    {
+      "id": "test-46a4317e629f4633",
+      "gold": "declined_cash_withdrawal",
+      "status": 200,
+      "ms": 141.0915998276323,
+      "label": "declined_cash_withdrawal",
+      "source": "student",
+      "reason": "accepted",
+      "conf": 0.9738223266463971,
+      "attempts": 1
+    },
+    {
+      "id": "test-9d92837599ad5c79",
+      "gold": "change_pin",
+      "status": 200,
+      "ms": 72.96449993737042,
+      "label": "change_pin",
+      "source": "student",
+      "reason": "accepted",
+      "conf": 0.976419154078648,
+      "attempts": 1
+    },
+    {
+      "id": "test-a6b14304eae2ed90",
+      "gold": "pending_transfer",
+      "status": 200,
+      "ms": 66.93520001135767,
+      "label": "transfer_timing",
+      "source": "student",
+      "reason": "accepted",
+      "conf": 0.9430295487427305,
+      "attempts": 1
+    },
+    {
+      "id": "test-2f800819a1cd75a9",
+      "gold": "fiat_currency_support",
+      "status": 200,
+      "ms": 1453.3882001414895,
+      "label": "fiat_currency_support",
+      "source": "teacher",
+      "reason": "low_confidence",
+      "conf": 0.6518402740861247,
+      "attempts": 2
+    },
+    {
+      "id": "test-a13646aec0cfdc33",
+      "gold": "getting_spare_card",
+      "status": 200,
+      "ms": 1854.649499990046,
+      "label": "getting_spare_card",
+      "source": "teacher",
+      "reason": "low_confidence",
+      "conf": 0.5921766213554019,
+      "attempts": 4
+    },
+    {
+      "id": "test-f75e44bb006b64fb",
+      "gold": "card_payment_fee_charged",
+      "status": 200,
+      "ms": 87.82160002738237,
+      "label": "extra_charge_on_statement",
+      "source": "student",
+      "reason": "accepted",
+      "conf": 0.8573259376102924,
+      "attempts": 1
+    },
+    {
+      "id": "test-86e0505ed8abecd7",
+      "gold": "top_up_limits",
+      "status": 200,
+      "ms": 69.56680002622306,
+      "label": "top_up_limits",
+      "source": "student",
+      "reason": "accepted",
+      "conf": 0.9976181276105962,
+      "attempts": 1
+    },
+    {
+      "id": "test-c874926e1d3ca068",
+      "gold": "top_up_limits",
+      "status": 200,
+      "ms": 70.65510004758835,
+      "label": "top_up_limits",
+      "source": "student",
+      "reason": "accepted",
+      "conf": 0.9962175769091055,
+      "attempts": 1
+    },
+    {
+      "id": "test-1a675c098066b6db",
+      "gold": "virtual_card_not_working",
+      "status": 200,
+      "ms": 1100.8387999609113,
+      "label": "virtual_card_not_working",
+      "source": "teacher",
+      "reason": "low_confidence",
+      "conf": 0.5781597260516026,
+      "attempts": 4
+    },
+    {
+      "id": "test-6a43839a67cb8816",
+      "gold": "apple_pay_or_google_pay",
+      "status": 200,
+      "ms": 638.2069000974298,
+      "label": "apple_pay_or_google_pay",
+      "source": "student",
+      "reason": "accepted",
+      "conf": 0.9267624509385836,
+      "attempts": 1
+    },
+    {
+      "id": "test-3c84de6a345ca1a0",
+      "gold": "request_refund",
+      "status": 200,
+      "ms": 514.4175998866558,
+      "label": "request_refund",
+      "source": "student",
+      "reason": "accepted",
+      "conf": 0.9952810821091027,
+      "attempts": 1
+    },
+    {
+      "id": "test-786b11950de67e31",
+      "gold": "exchange_charge",
+      "status": 200,
+      "ms": 419.24710012972355,
+      "label": "exchange_charge",
+      "source": "student",
+      "reason": "accepted",
+      "conf": 0.9882666633430874,
+      "attempts": 1
+    },
+    {
+      "id": "test-e990947e10d892b3",
+      "gold": "request_refund",
+      "status": 200,
+      "ms": 516.9349999632686,
+      "label": "request_refund",
+      "source": "student",
+      "reason": "accepted",
+      "conf": 0.9977262941602687,
+      "attempts": 1
+    },
+    {
+      "id": "test-e754f7341c099edd",
+      "gold": "pending_card_payment",
+      "status": 200,
+      "ms": 520.5945000052452,
+      "label": "pending_card_payment",
+      "source": "student",
+      "reason": "accepted",
+      "conf": 0.989296410759292,
+      "attempts": 1
+    },
+    {
+      "id": "test-fe666042e06d7a41",
+      "gold": "verify_my_identity",
+      "status": 200,
+      "ms": 516.9943999499083,
+      "label": "verify_my_identity",
+      "source": "student",
+      "reason": "accepted",
+      "conf": 0.9806180840234985,
+      "attempts": 1
+    },
+    {
+      "id": "test-7fb6d87a06fb54ca",
+      "gold": "top_up_limits",
+      "status": 200,
+      "ms": 517.057100078091,
+      "label": "top_up_limits",
+      "source": "student",
+      "reason": "accepted",
+      "conf": 0.9977690569773879,
+      "attempts": 1
+    },
+    {
+      "id": "test-1461909127af2a2f",
+      "gold": "pending_transfer",
+      "status": 200,
+      "ms": 415.9850000869483,
+      "label": "transfer_timing",
+      "source": "student",
+      "reason": "accepted",
+      "conf": 0.994706694810013,
+      "attempts": 1
+    },
+    {
+      "id": "test-0a97ae334ba43aef",
+      "gold": "verify_source_of_funds",
+      "status": 200,
+      "ms": 716.3851000368595,
+      "label": "verify_source_of_funds",
+      "source": "student",
+      "reason": "accepted",
+      "conf": 0.9598343446474068,
+      "attempts": 1
+    },
+    {
+      "id": "test-8620e61ffc354c76",
+      "gold": "card_arrival",
+      "status": 200,
+      "ms": 523.9315999206156,
+      "label": "card_arrival",
+      "source": "student",
+      "reason": "accepted",
+      "conf": 0.9336274498549786,
+      "attempts": 1
+    },
+    {
+      "id": "test-9ca263d566ba840b",
+      "gold": "atm_support",
+      "status": 200,
+      "ms": 518.7858000863343,
+      "label": "atm_support",
+      "source": "student",
+      "reason": "accepted",
+      "conf": 0.9990617145710864,
+      "attempts": 1
+    },
+    {
+      "id": "test-f81997abf3e5b873",
+      "gold": "top_up_failed",
+      "status": 200,
+      "ms": 523.7346000503749,
+      "label": "top_up_failed",
+      "source": "student",
+      "reason": "accepted",
+      "conf": 0.9895313237744103,
+      "attempts": 1
+    },
+    {
+      "id": "test-20dba58c8a3cf9b9",
+      "gold": "lost_or_stolen_card",
+      "status": 200,
+      "ms": 722.7501999586821,
+      "label": "lost_or_stolen_card",
+      "source": "student",
+      "reason": "accepted",
+      "conf": 0.9273415332971614,
+      "attempts": 1
+    },
+    {
+      "id": "test-c799ed1f1e5a44c4",
+      "gold": "visa_or_mastercard",
+      "status": 200,
+      "ms": 621.1959000211209,
+      "label": "visa_or_mastercard",
+      "source": "student",
+      "reason": "accepted",
+      "conf": 0.9923029708925731,
+      "attempts": 1
+    },
+    {
+      "id": "test-4ba544a17b01abf0",
+      "gold": "visa_or_mastercard",
+      "status": 200,
+      "ms": 615.8225999679416,
+      "label": "visa_or_mastercard",
+      "source": "student",
+      "reason": "accepted",
+      "conf": 0.9977743030720021,
+      "attempts": 1
+    },
+    {
+      "id": "test-c15dd0104b32835b",
+      "gold": "transfer_fee_charged",
+      "status": 200,
+      "ms": 613.1813998799771,
+      "label": "transfer_fee_charged",
+      "source": "student",
+      "reason": "accepted",
+      "conf": 0.9941636089476436,
+      "attempts": 1
+    },
+    {
+      "id": "test-2fd84f28d033d159",
+      "gold": "cash_withdrawal_charge",
+      "status": 200,
+      "ms": 718.4771001338959,
+      "label": "wrong_amount_of_cash_received",
+      "source": "student",
+      "reason": "accepted",
+      "conf": 0.840105600278543,
+      "attempts": 1
+    },
+    {
+      "id": "test-27a4397bc097c8fb",
+      "gold": "fiat_currency_support",
+      "status": 200,
+      "ms": 515.1157998479903,
+      "label": "exchange_via_app",
+      "source": "student",
+      "reason": "accepted",
+      "conf": 0.9448256321323024,
+      "attempts": 1
+    },
+    {
+      "id": "test-3c489c9a7f2e4e51",
+      "gold": "declined_transfer",
+      "status": 200,
+      "ms": 516.0727999173105,
+      "label": "declined_transfer",
+      "source": "student",
+      "reason": "accepted",
+      "conf": 0.9915918339288744,
+      "attempts": 1
+    },
+    {
+      "id": "test-ff1bc16e453746f4",
+      "gold": "card_acceptance",
+      "status": 200,
+      "ms": 1661.916500190273,
+      "label": "card_acceptance",
+      "source": "teacher",
+      "reason": "low_confidence",
+      "conf": 0.6887445632177159,
+      "attempts": 6
+    },
+    {
+      "id": "test-23b4fb4ced101b7c",
+      "gold": "topping_up_by_card",
+      "status": 200,
+      "ms": 2264.8829999379814,
+      "label": "top_up_failed",
+      "source": "teacher",
+      "reason": "invalid_output",
+      "conf": 0.10249159817395191,
+      "attempts": 3
+    },
+    {
+      "id": "test-a8fde470f5944fc6",
+      "gold": "transaction_charged_twice",
+      "status": 200,
+      "ms": 640.5533000361174,
+      "label": "transaction_charged_twice",
+      "source": "student",
+      "reason": "accepted",
+      "conf": 0.9565037234247806,
+      "attempts": 1
+    },
+    {
+      "id": "test-42571d78b7078520",
+      "gold": "card_arrival",
+      "status": 200,
+      "ms": 523.8120001740754,
+      "label": "card_arrival",
+      "source": "student",
+      "reason": "accepted",
+      "conf": 0.9914978500973616,
+      "attempts": 1
+    },
+    {
+      "id": "test-c32989a7999a7ea0",
+      "gold": "passcode_forgotten",
+      "status": 200,
+      "ms": 718.1251000147313,
+      "label": "passcode_forgotten",
+      "source": "student",
+      "reason": "accepted",
+      "conf": 0.9752644767359279,
+      "attempts": 1
+    },
+    {
+      "id": "test-cd7422e4a4dbab64",
+      "gold": "get_disposable_virtual_card",
+      "status": 200,
+      "ms": 711.2926999107003,
+      "label": "get_disposable_virtual_card",
+      "source": "student",
+      "reason": "accepted",
+      "conf": 0.886940148229221,
+      "attempts": 1
+    },
+    {
+      "id": "test-cbf68e6f1b5bd83e",
+      "gold": "transfer_fee_charged",
+      "status": 200,
+      "ms": 612.4551999382675,
+      "label": "transfer_fee_charged",
+      "source": "student",
+      "reason": "accepted",
+      "conf": 0.9950834783675484,
+      "attempts": 1
+    },
+    {
+      "id": "test-4e40e63b2c7a95cf",
+      "gold": "card_payment_fee_charged",
+      "status": 200,
+      "ms": 712.0485999621451,
+      "label": "card_payment_fee_charged",
+      "source": "student",
+      "reason": "accepted",
+      "conf": 0.985581767417017,
+      "attempts": 1
+    },
+    {
+      "id": "test-5748238e26800b69",
+      "gold": "passcode_forgotten",
+      "status": 200,
+      "ms": 711.786299943924,
+      "label": "passcode_forgotten",
+      "source": "student",
+      "reason": "accepted",
+      "conf": 0.952803736854335,
+      "attempts": 1
+    }
+  ]
+}
