@@ -12,10 +12,11 @@ lora:
 train:
   epochs: 3
   lr: 1.0e-4
-  batch_size: 16
-  grad_accum: 1
+  batch_size: 8      # micro-batch
+  grad_accum: 2      # effective batch 16
   warmup_ratio: 0.05
   weight_decay: 0.0
-  max_len: 128
+  max_len: 144       # longest prompt is 126 tokens + label (<= 9) + <|im_end|>
   seed: 42
   grad_ckpt: true
+  vram_cap_gb: 5.4   # allocator cap below the 6 GB card: OOM instead of silent WDDM spill

@@ -52,16 +52,41 @@ def build_examples(rows: list[dict[str, Any]], tok: Any, max_len: int) -> list[d
 
 
 def collate(batch: list[dict[str, list[int]]], pad_id: int) -> dict[str, torch.Tensor]:
+    """LEFT-pad so every completion ends at the last position; lets us compute logits only for the tail."""
     n = max(len(b["input_ids"]) for b in batch)
     ids = torch.full((len(batch), n), pad_id, dtype=torch.long)
     lab = torch.full((len(batch), n), -100, dtype=torch.long)
     att = torch.zeros((len(batch), n), dtype=torch.long)
     for i, b in enumerate(batch):
         k = len(b["input_ids"])
-        ids[i, :k] = torch.tensor(b["input_ids"])
-        lab[i, :k] = torch.tensor(b["labels"])
-        att[i, :k] = 1
+        ids[i, n - k :] = torch.tensor(b["input_ids"])
+        lab[i, n - k :] = torch.tensor(b["labels"])
+        att[i, n - k :] = 1
     return {"input_ids": ids, "labels": lab, "attention_mask": att}
+
+
+def completion_loss(model: Any, b: dict[str, torch.Tensor]) -> tuple[torch.Tensor, int]:
+    """Mean CE over completion tokens, computing lm_head logits only for the last K+1 positions.
+
+    The 151k-token vocabulary makes full-sequence logits the dominant memory cost on a 6 GB GPU; the label
+    tokens are always at the end (left padding), so only the tail is needed.
+    """
+    labels = b["labels"]
+    k = int((labels != -100).sum(dim=1).max())
+    pos = (b["attention_mask"].cumsum(-1) - 1).clamp(min=0)
+    with torch.autocast("cuda", dtype=torch.bfloat16):
+        out = model(
+            input_ids=b["input_ids"],
+            attention_mask=b["attention_mask"],
+            position_ids=pos,
+            logits_to_keep=k + 1,
+        )
+    logits = out.logits[:, :-1, :].float()  # predicts the last k tokens
+    target = labels[:, -k:]
+    loss = torch.nn.functional.cross_entropy(
+        logits.reshape(-1, logits.size(-1)), target.reshape(-1), ignore_index=-100
+    )
+    return loss, int((target != -100).sum())
 
 
 @torch.no_grad()
@@ -70,10 +95,8 @@ def val_loss(model: Any, examples: list[dict[str, list[int]]], pad_id: int, bs: 
     tot, n = 0.0, 0
     for i in range(0, len(examples), bs):
         b = {k: v.cuda() for k, v in collate(examples[i : i + bs], pad_id).items()}
-        with torch.autocast("cuda", dtype=torch.bfloat16):
-            out = model(**b)
-        k = int((b["labels"] != -100).sum())
-        tot += float(out.loss) * k
+        loss, k = completion_loss(model, b)
+        tot += float(loss) * k
         n += k
     return tot / max(n, 1)
 
@@ -93,7 +116,7 @@ def main() -> None:
     os.environ.setdefault("WANDB_MODE", "offline")
     os.environ.setdefault("WANDB_DIR", str(ROOT))
     import wandb
-    from peft import LoraConfig, get_peft_model, prepare_model_for_kbit_training
+    from peft import LoraConfig, get_peft_model
     from transformers import AutoModelForCausalLM, BitsAndBytesConfig, get_cosine_schedule_with_warmup
 
     if a.smoke:
@@ -105,6 +128,12 @@ def main() -> None:
 
     train_rows = read_jsonl(Path(a.data_dir) / "train.jsonl")[: a.max_train or None]
     val_rows = read_jsonl(Path(a.data_dir) / "val.jsonl")
+
+    # Windows WDDM silently spills to shared system RAM when VRAM is full (very slow, misleading timings).
+    # Cap PyTorch's allocator below physical VRAM so a config that does not fit fails with OOM instead.
+    free0, total_vram = torch.cuda.mem_get_info()
+    vram_cap = float(tcfg.get("vram_cap_gb", 5.4)) * 1e9
+    torch.cuda.set_per_process_memory_fraction(min(1.0, vram_cap / total_vram))
 
     tok = load_tokenizer(cfg["base_model"], cfg.get("revision"))
     quant = None
@@ -123,10 +152,12 @@ def main() -> None:
         device_map={"": 0},
         attn_implementation="sdpa",
     )
-    if quant is not None:
-        model = prepare_model_for_kbit_training(
-            model, use_gradient_checkpointing=bool(tcfg.get("grad_ckpt", False))
-        )
+    # Memory plan for a 6 GB card (no fp32 upcast of the 151k-vocab embeddings, unlike
+    # prepare_model_for_kbit_training): frozen 4-bit base, bf16 LoRA compute, gradient checkpointing.
+    if bool(tcfg.get("grad_ckpt", True)):
+        model.gradient_checkpointing_enable(gradient_checkpointing_kwargs={"use_reentrant": False})
+        model.enable_input_require_grads()
+    model.config.use_cache = False
     model = get_peft_model(
         model,
         LoraConfig(
@@ -145,7 +176,10 @@ def main() -> None:
     bs, accum, epochs = int(tcfg["batch_size"]), int(tcfg.get("grad_accum", 1)), int(tcfg["epochs"])
     steps_per_epoch = math.ceil(len(train_ex) / (bs * accum))
     total_steps = steps_per_epoch * epochs
-    opt = torch.optim.AdamW(
+    import bitsandbytes as bnb
+
+    # paged 8-bit AdamW: optimizer state in 8 bit, paged to host RAM under pressure
+    opt = bnb.optim.PagedAdamW8bit(
         [p for p in model.parameters() if p.requires_grad],
         lr=float(tcfg["lr"]),
         weight_decay=float(tcfg["weight_decay"]),
@@ -183,8 +217,8 @@ def main() -> None:
             micro = [order[j : j + bs] for j in range(i, min(i + bs * accum, len(order)), bs)]
             for mb in micro:
                 b = {k: v.cuda() for k, v in collate([train_ex[j] for j in mb], pad_id).items()}
-                with torch.autocast("cuda", dtype=torch.bfloat16):
-                    loss = model(**b).loss / len(micro)
+                loss, _ = completion_loss(model, b)
+                loss = loss / len(micro)
                 loss.backward()
                 loss_acc += loss.item()
             torch.nn.utils.clip_grad_norm_([p for p in model.parameters() if p.requires_grad], 1.0)
@@ -197,7 +231,7 @@ def main() -> None:
                 {"train/loss": loss_acc, "train/lr": lr, "train/epoch": step / steps_per_epoch}, step=step
             )
         # ---- per-epoch validation ----
-        vl = val_loss(model, val_ex, pad_id, 16)
+        vl = val_loss(model, val_ex, pad_id, 32)
         preds, confs = generate_labels(model, tok, [str(r["text"]) for r in val_rows], batch_size=32)
         t_lab = [str(r["teacher"]) for r in val_rows]
         g_lab = [str(r["gold"]) for r in val_rows]
@@ -242,6 +276,11 @@ def main() -> None:
         "total_params": total,
         "train_time_s": round(time.time() - t_start, 1),
         "peak_vram_gb": round(torch.cuda.max_memory_allocated() / 1e9, 2),
+        "peak_reserved_gb": round(torch.cuda.max_memory_reserved() / 1e9, 2),
+        "physical_vram_gb": round(total_vram / 1e9, 2),
+        "free_vram_at_start_gb": round(free0 / 1e9, 2),
+        "allocator_cap_gb": round(vram_cap / 1e9, 2),
+        "spilled_to_shared_memory": torch.cuda.max_memory_reserved() > total_vram,
         "best_epoch": best["epoch"],
         "best": best,
         "epochs": epochs_log,
@@ -255,7 +294,15 @@ def main() -> None:
     (out_dir / "summary.json").write_text(json.dumps(summary, indent=2) + "\n")
     run.summary.update({"best_epoch": best["epoch"], **{f"best/{k}": v for k, v in best.items()}})
     run.finish()
-    print(json.dumps({k: summary[k] for k in ("name", "best_epoch", "train_time_s", "peak_vram_gb")}))
+    keys = (
+        "name",
+        "best_epoch",
+        "train_time_s",
+        "peak_vram_gb",
+        "peak_reserved_gb",
+        "spilled_to_shared_memory",
+    )
+    print(json.dumps({k: summary[k] for k in keys}))
 
 
 if __name__ == "__main__":

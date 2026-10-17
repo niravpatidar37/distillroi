@@ -34,8 +34,14 @@ def prompt_ids(tok: Any, text: str) -> list[int]:
 
 @torch.no_grad()
 def generate_labels(
-    model: Any, tok: Any, texts: list[str], batch_size: int = 64, max_new_tokens: int = 24
+    model: Any, tok: Any, texts: list[str], batch_size: int = 32, max_new_tokens: int = 12
 ) -> tuple[list[str | None], list[float]]:
+    """Greedy decoding with a KV cache, keeping only last-position logits per step.
+
+    Returns (label or None if outside the enum, joint probability of the generated tokens incl. <|im_end|>).
+    Memory stays at batch x vocab per step (HF ``output_scores`` would hold batch x steps x vocab in fp32).
+    Labels are at most 9 tokens, so 12 new tokens always suffice.
+    """
     model.eval()
     eos = tok.convert_tokens_to_ids("<|im_end|>")
     preds: list[str | None] = []
@@ -45,28 +51,43 @@ def generate_labels(
         n = max(len(c) for c in chunk)
         ids = torch.full((len(chunk), n), tok.pad_token_id, dtype=torch.long)
         att = torch.zeros((len(chunk), n), dtype=torch.long)
-        for j, c in enumerate(chunk):  # left padding for generation
+        for j, c in enumerate(chunk):  # left padding
             ids[j, n - len(c) :] = torch.tensor(c)
             att[j, n - len(c) :] = 1
         ids, att = ids.cuda(), att.cuda()
-        with torch.autocast("cuda", dtype=torch.bfloat16):
-            out = model.generate(
-                input_ids=ids,
-                attention_mask=att,
-                max_new_tokens=max_new_tokens,
-                do_sample=False,
-                eos_token_id=eos,
-                pad_token_id=tok.pad_token_id,
-                output_scores=True,
-                return_dict_in_generate=True,
-            )
-        gen = out.sequences[:, n:]
-        scores = model.compute_transition_scores(out.sequences, out.scores, normalize_logits=True)
-        for j in range(gen.shape[0]):
-            toks = gen[j].tolist()
+        pos = (att.cumsum(-1) - 1).clamp(min=0)
+        b = ids.shape[0]
+        out_tokens = torch.zeros((b, 0), dtype=torch.long, device="cuda")
+        logp = torch.zeros(b, device="cuda")
+        done = torch.zeros(b, dtype=torch.bool, device="cuda")
+        past = None
+        step_ids, step_pos = ids, pos
+        for _ in range(max_new_tokens):
+            with torch.autocast("cuda", dtype=torch.bfloat16):
+                out = model(
+                    input_ids=step_ids,
+                    attention_mask=att,
+                    position_ids=step_pos,
+                    past_key_values=past,
+                    use_cache=True,
+                    logits_to_keep=1,
+                )
+            past = out.past_key_values
+            lp = torch.log_softmax(out.logits[:, -1, :].float(), dim=-1)
+            nxt = lp.argmax(dim=-1)
+            logp += torch.where(done, torch.zeros_like(logp), lp.gather(1, nxt[:, None]).squeeze(1))
+            nxt = torch.where(done, torch.full_like(nxt, eos), nxt)
+            out_tokens = torch.cat([out_tokens, nxt[:, None]], dim=1)
+            done |= nxt == eos
+            if bool(done.all()):
+                break
+            att = torch.cat([att, torch.ones((b, 1), dtype=att.dtype, device="cuda")], dim=1)
+            step_pos = step_pos[:, -1:] + 1
+            step_ids = nxt[:, None]
+        for j in range(b):
+            toks = out_tokens[j].tolist()
             k = toks.index(eos) if eos in toks else len(toks)
-            text = tok.decode(toks[:k], skip_special_tokens=True)
-            lp = float(scores[j, :k].float().sum()) if k > 0 else -1e9
-            preds.append(canonical_label(text))
-            confs.append(float(torch.exp(torch.tensor(lp))))
+            preds.append(canonical_label(tok.decode(toks[:k], skip_special_tokens=True)))
+            confs.append(float(torch.exp(logp[j])) if eos in toks else 0.0)
+        del past
     return preds, confs
