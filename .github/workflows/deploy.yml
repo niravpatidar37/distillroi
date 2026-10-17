@@ -1,0 +1,144 @@
+name: deploy
+
+# CD to Cloud Run: build -> push to Artifact Registry -> deploy STAGING -> smoke -> PROD (manual approval via the
+# `production` environment) -> canary 10% -> smoke -> 100%, automatic rollback to the previous revision on failure.
+# Every job is skipped until the repo variables GCP_PROJECT_ID / GCP_REGION / GCP_WIF_PROVIDER / GCP_DEPLOY_SA exist,
+# so this workflow is green before a GCP project is connected. Images are deployed BY DIGEST, never by tag.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy
+  cancel-in-progress: false
+
+env:
+  REGION: ${{ vars.GCP_REGION }}
+  PROJECT: ${{ vars.GCP_PROJECT_ID }}
+  VLLM_UPSTREAM: vllm/vllm-openai:v0.31.0@sha256:c1c9f6fd5c109ba7f0546a59f5b2f15fb87f64c77782e90a27b648b42a8e67c3
+
+jobs:
+  build:
+    if: vars.GCP_PROJECT_ID != ''
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    permissions:
+      contents: read
+      id-token: write
+    outputs:
+      router_image: ${{ steps.push.outputs.router_image }}
+      vllm_image: ${{ steps.mirror.outputs.vllm_image }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3.0.0
+        with:
+          workload_identity_provider: ${{ vars.GCP_WIF_PROVIDER }}
+          service_account: ${{ vars.GCP_DEPLOY_SA }}
+      - uses: google-github-actions/setup-gcloud@aa5489c8933f4cc7a4f7d45035b3b1440c9c10db # v3.0.1
+      - run: gcloud auth configure-docker "${REGION}-docker.pkg.dev" --quiet
+      - id: push
+        name: build + push router image, emit digest
+        run: |
+          repo="${REGION}-docker.pkg.dev/${PROJECT}/distill-staging"
+          docker build -t "$repo/router:${GITHUB_SHA}" .
+          docker push "$repo/router:${GITHUB_SHA}"
+          digest=$(docker inspect --format='{{index .RepoDigests 0}}' "$repo/router:${GITHUB_SHA}")
+          echo "router_image=$digest" >> "$GITHUB_OUTPUT"
+      - id: mirror
+        name: mirror the pinned vLLM image into Artifact Registry (no Docker Hub pulls at deploy time)
+        run: |
+          repo="${REGION}-docker.pkg.dev/${PROJECT}/distill-staging"
+          docker pull "$VLLM_UPSTREAM"
+          docker tag "$VLLM_UPSTREAM" "$repo/vllm-openai:v0.31.0"
+          docker push "$repo/vllm-openai:v0.31.0" || true  # immutable tag: already mirrored is fine
+          digest=$(docker inspect --format='{{index .RepoDigests 0}}' "$repo/vllm-openai:v0.31.0" | grep "$repo" || true)
+          echo "vllm_image=${digest:-$repo/vllm-openai@${VLLM_UPSTREAM#*@}}" >> "$GITHUB_OUTPUT"
+
+  deploy-staging:
+    if: vars.GCP_PROJECT_ID != ''
+    needs: build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    environment: staging
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3.0.0
+        with:
+          workload_identity_provider: ${{ vars.GCP_WIF_PROVIDER }}
+          service_account: ${{ vars.GCP_DEPLOY_SA }}
+      - uses: google-github-actions/setup-gcloud@aa5489c8933f4cc7a4f7d45035b3b1440c9c10db # v3.0.1
+      - name: deploy vLLM student + router (by digest)
+        env:
+          ROUTER_IMAGE: ${{ needs.build.outputs.router_image }}
+          VLLM_IMAGE: ${{ needs.build.outputs.vllm_image }}
+        run: |
+          gcloud run services update distill-staging-vllm --region "$REGION" --image "$VLLM_IMAGE" --quiet
+          prev=$(gcloud run services describe distill-staging-router --region "$REGION" --format='value(status.latestReadyRevisionName)')
+          echo "PREV=$prev" >> "$GITHUB_ENV"
+          gcloud run deploy distill-staging-router --region "$REGION" --image "$ROUTER_IMAGE" --quiet
+      - name: smoke test /healthz + /readyz + one classification (rollback on failure)
+        run: |
+          url=$(gcloud run services describe distill-staging-router --region "$REGION" --format='value(status.url)')
+          token=$(gcloud auth print-identity-token --audiences="$url")
+          if ! bash scripts/smoke.sh "$url" "$token"; then
+            echo "smoke failed: rolling back to $PREV"
+            gcloud run services update-traffic distill-staging-router --region "$REGION" --to-revisions "$PREV=100" --quiet
+            exit 1
+          fi
+
+  deploy-prod:
+    if: vars.GCP_PROJECT_ID != ''
+    needs: [build, deploy-staging]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    environment: production # required reviewers = manual approval gate
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3.0.0
+        with:
+          workload_identity_provider: ${{ vars.GCP_WIF_PROVIDER }}
+          service_account: ${{ vars.GCP_DEPLOY_SA }}
+      - uses: google-github-actions/setup-gcloud@aa5489c8933f4cc7a4f7d45035b3b1440c9c10db # v3.0.1
+      - name: deploy candidate revision with no traffic
+        env:
+          ROUTER_IMAGE: ${{ needs.build.outputs.router_image }}
+        run: |
+          prev=$(gcloud run services describe distill-prod-router --region "$REGION" --format='value(status.latestReadyRevisionName)')
+          echo "PREV=$prev" >> "$GITHUB_ENV"
+          gcloud run deploy distill-prod-router --region "$REGION" --image "$ROUTER_IMAGE" \
+            --no-traffic --tag candidate --quiet
+          cand=$(gcloud run services describe distill-prod-router --region "$REGION" --format='value(status.latestCreatedRevisionName)')
+          echo "CAND=$cand" >> "$GITHUB_ENV"
+      - name: smoke candidate tag -> canary 10% -> smoke -> 100% (rollback on any failure)
+        run: |
+          url=$(gcloud run services describe distill-prod-router --region "$REGION" --format='value(status.url)')
+          tag_url=$(echo "$url" | sed 's#https://#https://candidate---#')
+          token=$(gcloud auth print-identity-token --audiences="$url")
+          rollback() {
+            echo "rolling back to $PREV"
+            gcloud run services update-traffic distill-prod-router --region "$REGION" --to-revisions "$PREV=100" --quiet
+            exit 1
+          }
+          bash scripts/smoke.sh "$tag_url" "$token" || rollback
+          gcloud run services update-traffic distill-prod-router --region "$REGION" \
+            --to-revisions "$CAND=10,$PREV=90" --quiet
+          sleep 120
+          bash scripts/smoke.sh "$url" "$token" || rollback
+          gcloud run services update-traffic distill-prod-router --region "$REGION" --to-revisions "$CAND=100" --quiet

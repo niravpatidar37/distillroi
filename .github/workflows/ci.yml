@@ -1,0 +1,143 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  UV_VERSION: "0.9.21"
+
+jobs:
+  lint-typecheck:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
+        with:
+          version: ${{ env.UV_VERSION }}
+          python-version: "3.12"
+      # core + dev only: the `train` extra (torch, bitsandbytes) is never installed in CI (no GPU)
+      - run: uv sync --frozen
+      - run: uv run ruff check .
+      - run: uv run ruff format --check .
+      - run: uv run mypy
+
+  test:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
+        with:
+          version: ${{ env.UV_VERSION }}
+          python-version: "3.12"
+      - run: uv sync --frozen
+      # GPU and live-server tests are marked `gpu` / `integration` and deselected by default.
+      # Teacher/student HTTP calls are mocked with respx: no secrets, no network LLM calls.
+      - run: uv run pytest -q
+
+  security:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
+        with:
+          version: ${{ env.UV_VERSION }}
+          python-version: "3.12"
+      - run: uv sync --frozen
+      - name: bandit
+        run: uv run bandit -q -r src -c pyproject.toml
+      - name: pip-audit (runtime deps, hash-pinned from uv.lock)
+        run: |
+          uv export --frozen --no-dev --no-emit-project --format requirements-txt -o "$RUNNER_TEMP/req.txt"
+          uv run pip-audit -r "$RUNNER_TEMP/req.txt" --disable-pip --require-hashes
+      - name: gitleaks (full history)
+        run: >
+          docker run --rm -v "$GITHUB_WORKSPACE:/repo"
+          zricethezav/gitleaks:v8.30.1@sha256:c00b6bd0aeb3071cbcb79009cb16a60dd9e0a7c60e2be9ab65d25e6bc8abbb7f
+          detect --source /repo --redact --no-banner -v
+
+  docker:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: build router image
+        run: docker build -t distill-router:ci .
+      - name: container runs as non-root, serves /healthz, /readyz reports missing student
+        run: |
+          docker run -d --name router -p 127.0.0.1:18080:8080 -e TEACHER_ENABLED=false distill-router:ci
+          for i in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:18080/healthz; then break; fi
+            sleep 1
+          done
+          test "$(docker exec router id -u)" = "10001"
+          test "$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:18080/healthz)" = "200"
+          test "$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:18080/readyz)" = "503"
+          test "$(curl -s -o /dev/null -w '%{http_code}' -X POST -H 'content-type: application/json' \
+            -d '{"text": ""}' http://127.0.0.1:18080/v1/classify)" = "422"
+      - name: trivy image scan (HIGH/CRITICAL, fixed)
+        run: >
+          docker run --rm -v /var/run/docker.sock:/var/run/docker.sock
+          aquasec/trivy:0.75.0@sha256:af6acf9a6b85dfe389a1941505c0ce9efef52a4719635e1a962f022a3d855daa
+          image --severity HIGH,CRITICAL --ignore-unfixed --exit-code 1 --no-progress
+          distill-router:ci
+
+  terraform:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e # v4.0.1
+        with:
+          terraform_version: "1.16.6"
+          terraform_wrapper: false
+      - name: terraform fmt
+        run: terraform fmt -check -recursive infra/terraform
+      - name: terraform init (no backend) + validate
+        run: |
+          for env in staging prod; do
+            terraform -chdir=infra/terraform/envs/$env init -backend=false -input=false -lockfile=readonly
+            terraform -chdir=infra/terraform/envs/$env validate
+          done
+      - uses: terraform-linters/setup-tflint@6ffdbaa3be476b3431f7275c26966ef32ff60337 # v6.3.2
+        with:
+          tflint_version: v0.64.0
+      - name: tflint
+        working-directory: infra/terraform
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          tflint --init --config="$PWD/.tflint.hcl"
+          tflint --config="$PWD/.tflint.hcl" --recursive
+      - name: checkov (IaC scan; skips are justified inline in main.tf)
+        run: >
+          docker run --rm -v "$GITHUB_WORKSPACE/infra/terraform:/tf"
+          bridgecrew/checkov:3.3.29@sha256:3cc125b5337717b7303dbddd4e79374c120687b5ff6a24f9abdad56b562469f3
+          -d /tf --framework terraform --quiet --compact --skip-path .terraform
+      - name: trivy config (Dockerfile + Terraform)
+        run: >
+          docker run --rm -v "$GITHUB_WORKSPACE:/repo"
+          aquasec/trivy:0.75.0@sha256:af6acf9a6b85dfe389a1941505c0ce9efef52a4719635e1a962f022a3d855daa
+          config --severity HIGH,CRITICAL --exit-code 1 /repo
