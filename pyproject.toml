@@ -1,0 +1,92 @@
+[project]
+name = "model-distillation-pipeline"
+version = "0.1.0"
+description = "Distil gpt-oss-120b intent classification (banking77) into a Qwen2.5 student, serve it with vLLM, route low-confidence traffic back to the teacher."
+readme = "README.md"
+requires-python = ">=3.12,<3.13"
+license = { text = "MIT" }
+dependencies = [
+    "fastapi>=0.115",
+    "uvicorn[standard]>=0.32",
+    "httpx>=0.28",
+    "pydantic>=2.9",
+    "pydantic-settings>=2.6",
+    "portalocker>=2.10",
+    "python-dotenv>=1.0",
+    "pyyaml>=6.0",
+]
+
+[project.optional-dependencies]
+# Heavy, GPU-side dependencies. CI never installs these (no GPU); install locally with
+# `uv sync --extra train`.
+train = [
+    "torch>=2.8",
+    "transformers>=4.57,<5",
+    "peft>=0.17",
+    "bitsandbytes>=0.48",
+    "accelerate>=1.10",
+    "wandb>=0.22",
+    "matplotlib>=3.9",
+    "safetensors>=0.6",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3",
+    "pytest-asyncio>=0.24",
+    "respx>=0.21",
+    "ruff>=0.8",
+    "mypy>=1.13",
+    "types-pyyaml>=6.0",
+    "bandit[toml]>=1.8",
+    "pip-audit>=2.7",
+]
+
+[tool.uv]
+default-groups = ["dev"]
+
+[tool.uv.sources]
+torch = [{ index = "pytorch-cu128" }]
+
+[[tool.uv.index]]
+name = "pytorch-cu128"
+url = "https://download.pytorch.org/whl/cu128"
+explicit = true
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/distill"]
+
+[tool.ruff]
+line-length = 110
+target-version = "py312"
+extend-exclude = ["wandb", "artifacts"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "S", "ASYNC", "RUF"]
+ignore = ["S101", "RUF001", "RUF002", "RUF003"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S", "B"]
+"scripts/**" = ["S311", "S603", "S607"]
+
+[tool.mypy]
+python_version = "3.12"
+files = ["src"]
+strict = true
+plugins = ["pydantic.mypy"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+markers = [
+    "gpu: needs a CUDA GPU and the train extra (skipped in CI)",
+    "integration: needs a running vLLM server or network access (skipped by default)",
+]
+addopts = "-m 'not gpu and not integration'"
+
+[tool.bandit]
+exclude_dirs = ["tests", ".venv"]

@@ -1,0 +1,35 @@
+# secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+# python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+dist/
+build/
+*.egg-info/
+# data caches / raw downloads / model weights (never committed)
+data/raw/
+data/cache/
+artifacts/
+*.safetensors
+*.bin
+*.gguf
+*.pt
+*.pth
+# experiment tracking (offline runs are synced later with `wandb sync`)
+wandb/
+logs/
+*.log
+# terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfplan
+crash.log
