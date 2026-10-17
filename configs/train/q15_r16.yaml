@@ -1,0 +1,19 @@
+# Run locally. Rank-16 QLoRA on the 1.5B student (size vs 0.5B).
+name: q15_r16
+base_model: Qwen/Qwen2.5-1.5B-Instruct
+revision: 989aa7980e4cf806f80c7fef2b1adb7bc71aa306
+quantization: nf4   # nf4 = QLoRA (bitsandbytes 4-bit base, bf16 compute); none = plain LoRA
+lora:
+  r: 16
+  alpha: 32
+  dropout: 0.05
+  target_modules: [q_proj, k_proj, v_proj, o_proj, gate_proj, up_proj, down_proj]
+train:
+  epochs: 3
+  lr: 2.0e-4
+  batch_size: 16
+  grad_accum: 1
+  warmup_ratio: 0.05
+  weight_decay: 0.0
+  max_len: 128
+  seed: 42

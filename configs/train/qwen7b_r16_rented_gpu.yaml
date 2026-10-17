@@ -1,0 +1,21 @@
+# NOT RUN. Ready for a rented 24 GB GPU (e.g. L4/A10G): the guide's 7-8B student. QLoRA keeps it to ~8-10 GB VRAM.
+# Same script: python scripts/train.py configs/train/qwen7b_r16_rented_gpu.yaml
+name: qwen7b_r16
+base_model: Qwen/Qwen2.5-7B-Instruct
+revision: a09a35458c702b33eeacc393d103063234e8bc28
+quantization: nf4   # nf4 = QLoRA (bitsandbytes 4-bit base, bf16 compute); none = plain LoRA
+lora:
+  r: 16
+  alpha: 32
+  dropout: 0.05
+  target_modules: [q_proj, k_proj, v_proj, o_proj, gate_proj, up_proj, down_proj]
+train:
+  epochs: 3
+  lr: 1.0e-4
+  batch_size: 16
+  grad_accum: 1
+  warmup_ratio: 0.05
+  weight_decay: 0.0
+  max_len: 128
+  seed: 42
+  grad_ckpt: true

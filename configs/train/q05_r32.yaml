@@ -1,0 +1,19 @@
+# Run locally. Rank-32 QLoRA on the 0.5B student (capacity vs rank-8).
+name: q05_r32
+base_model: Qwen/Qwen2.5-0.5B-Instruct
+revision: 7ae557604adf67be50417f59c2c2f167def9a775
+quantization: nf4   # nf4 = QLoRA (bitsandbytes 4-bit base, bf16 compute); none = plain LoRA
+lora:
+  r: 32
+  alpha: 64
+  dropout: 0.05
+  target_modules: [q_proj, k_proj, v_proj, o_proj, gate_proj, up_proj, down_proj]
+train:
+  epochs: 3
+  lr: 2.0e-4
+  batch_size: 16
+  grad_accum: 1
+  warmup_ratio: 0.05
+  weight_decay: 0.0
+  max_len: 128
+  seed: 42
