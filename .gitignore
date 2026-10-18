@@ -33,3 +33,7 @@ logs/
 *.tfstate.*
 *.tfplan
 crash.log
+# brand build: downloaded font archive (fetched + SHA-256 checked by build_brand.py)
+assets/brand/tools/.cache/
+*.ttf
+*.otf
