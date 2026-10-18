@@ -359,6 +359,78 @@ wheels = [
 ]
 
 [[package]]
+name = "distillroi"
+version = "0.1.0"
+source = { editable = "." }
+dependencies = [
+    { name = "fastapi" },
+    { name = "httpx" },
+    { name = "portalocker" },
+    { name = "pydantic" },
+    { name = "pydantic-settings" },
+    { name = "python-dotenv" },
+    { name = "pyyaml" },
+    { name = "uvicorn", extra = ["standard"] },
+]
+
+[package.optional-dependencies]
+train = [
+    { name = "accelerate" },
+    { name = "bitsandbytes" },
+    { name = "matplotlib" },
+    { name = "peft" },
+    { name = "safetensors" },
+    { name = "torch" },
+    { name = "transformers" },
+    { name = "wandb" },
+]
+
+[package.dev-dependencies]
+dev = [
+    { name = "bandit" },
+    { name = "mypy" },
+    { name = "pip-audit" },
+    { name = "pytest" },
+    { name = "pytest-asyncio" },
+    { name = "respx" },
+    { name = "ruff" },
+    { name = "types-pyyaml" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "accelerate", marker = "extra == 'train'", specifier = ">=1.10" },
+    { name = "bitsandbytes", marker = "extra == 'train'", specifier = ">=0.48" },
+    { name = "fastapi", specifier = ">=0.115" },
+    { name = "httpx", specifier = ">=0.28" },
+    { name = "matplotlib", marker = "extra == 'train'", specifier = ">=3.9" },
+    { name = "peft", marker = "extra == 'train'", specifier = ">=0.17" },
+    { name = "portalocker", specifier = ">=2.10" },
+    { name = "pydantic", specifier = ">=2.9" },
+    { name = "pydantic-settings", specifier = ">=2.6" },
+    { name = "python-dotenv", specifier = ">=1.0" },
+    { name = "pyyaml", specifier = ">=6.0" },
+    { name = "safetensors", marker = "extra == 'train'", specifier = ">=0.6" },
+    { name = "torch", marker = "extra == 'train'", specifier = ">=2.8", index = "https://download.pytorch.org/whl/cu128" },
+    { name = "transformers", marker = "extra == 'train'", specifier = ">=4.57,<5" },
+    { name = "uvicorn", extras = ["standard"], specifier = ">=0.32" },
+    { name = "wandb", marker = "extra == 'train'", specifier = ">=0.22" },
+]
+provides-extras = ["train"]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "bandit", extras = ["toml"], specifier = ">=1.8" },
+    { name = "mypy", specifier = ">=1.13" },
+    { name = "pip-audit", specifier = ">=2.7" },
+    { name = "pytest", specifier = ">=8.3" },
+    { name = "pytest-asyncio", specifier = ">=0.24" },
+    { name = "respx", specifier = ">=0.21" },
+    { name = "ruff", specifier = ">=0.8" },
+    { name = "types-pyyaml", specifier = ">=6.0" },
+]
+
+[[package]]
 name = "distro"
 version = "1.9.0"
 source = { registry = "https://pypi.org/simple" }
@@ -683,78 +755,6 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/d6/54/cfe61301667036ec958cb99bd3efefba235e65cdeb9c84d24a8293ba1d90/mdurl-0.1.2.tar.gz", hash = "sha256:bb413d29f5eea38f31dd4754dd7377d4465116fb207585f97bf925588687c1ba", size = 8729, upload-time = "2022-08-14T12:40:10.846Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/b3/38/89ba8ad64ae25be8de66a6d463314cf1eb366222074cfda9ee839c56a4b4/mdurl-0.1.2-py3-none-any.whl", hash = "sha256:84008a41e51615a49fc9966191ff91509e3c40b939176e643fd50a5c2196b8f8", size = 9979, upload-time = "2022-08-14T12:40:09.779Z" },
-]
-
-[[package]]
-name = "model-distillation-pipeline"
-version = "0.1.0"
-source = { editable = "." }
-dependencies = [
-    { name = "fastapi" },
-    { name = "httpx" },
-    { name = "portalocker" },
-    { name = "pydantic" },
-    { name = "pydantic-settings" },
-    { name = "python-dotenv" },
-    { name = "pyyaml" },
-    { name = "uvicorn", extra = ["standard"] },
-]
-
-[package.optional-dependencies]
-train = [
-    { name = "accelerate" },
-    { name = "bitsandbytes" },
-    { name = "matplotlib" },
-    { name = "peft" },
-    { name = "safetensors" },
-    { name = "torch" },
-    { name = "transformers" },
-    { name = "wandb" },
-]
-
-[package.dev-dependencies]
-dev = [
-    { name = "bandit" },
-    { name = "mypy" },
-    { name = "pip-audit" },
-    { name = "pytest" },
-    { name = "pytest-asyncio" },
-    { name = "respx" },
-    { name = "ruff" },
-    { name = "types-pyyaml" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "accelerate", marker = "extra == 'train'", specifier = ">=1.10" },
-    { name = "bitsandbytes", marker = "extra == 'train'", specifier = ">=0.48" },
-    { name = "fastapi", specifier = ">=0.115" },
-    { name = "httpx", specifier = ">=0.28" },
-    { name = "matplotlib", marker = "extra == 'train'", specifier = ">=3.9" },
-    { name = "peft", marker = "extra == 'train'", specifier = ">=0.17" },
-    { name = "portalocker", specifier = ">=2.10" },
-    { name = "pydantic", specifier = ">=2.9" },
-    { name = "pydantic-settings", specifier = ">=2.6" },
-    { name = "python-dotenv", specifier = ">=1.0" },
-    { name = "pyyaml", specifier = ">=6.0" },
-    { name = "safetensors", marker = "extra == 'train'", specifier = ">=0.6" },
-    { name = "torch", marker = "extra == 'train'", specifier = ">=2.8", index = "https://download.pytorch.org/whl/cu128" },
-    { name = "transformers", marker = "extra == 'train'", specifier = ">=4.57,<5" },
-    { name = "uvicorn", extras = ["standard"], specifier = ">=0.32" },
-    { name = "wandb", marker = "extra == 'train'", specifier = ">=0.22" },
-]
-provides-extras = ["train"]
-
-[package.metadata.requires-dev]
-dev = [
-    { name = "bandit", extras = ["toml"], specifier = ">=1.8" },
-    { name = "mypy", specifier = ">=1.13" },
-    { name = "pip-audit", specifier = ">=2.7" },
-    { name = "pytest", specifier = ">=8.3" },
-    { name = "pytest-asyncio", specifier = ">=0.24" },
-    { name = "respx", specifier = ">=0.21" },
-    { name = "ruff", specifier = ">=0.8" },
-    { name = "types-pyyaml", specifier = ">=6.0" },
 ]
 
 [[package]]

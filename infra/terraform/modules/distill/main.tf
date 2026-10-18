@@ -1,6 +1,6 @@
 locals {
   name   = "distill-${var.env}"
-  labels = { app = "model-distillation-pipeline", env = var.env, managed_by = "terraform" }
+  labels = { app = "distillroi", env = var.env, managed_by = "terraform" }
 }
 
 data "google_project" "this" {

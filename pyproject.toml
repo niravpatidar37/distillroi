@@ -1,5 +1,5 @@
 [project]
-name = "model-distillation-pipeline"
+name = "distillroi"
 version = "0.1.0"
 description = "Distil gpt-oss-120b intent classification (banking77) into a Qwen2.5 student, serve it with vLLM, route low-confidence traffic back to the teacher."
 readme = "README.md"

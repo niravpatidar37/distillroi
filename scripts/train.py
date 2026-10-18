@@ -187,7 +187,7 @@ def main() -> None:
     sched = get_cosine_schedule_with_warmup(opt, int(total_steps * float(tcfg["warmup_ratio"])), total_steps)
 
     run = wandb.init(
-        project="model-distillation-pipeline",
+        project="distillroi",
         name=name,
         config={
             **cfg,

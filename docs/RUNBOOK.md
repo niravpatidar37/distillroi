@@ -1,4 +1,4 @@
-# Runbook: model-distillation-pipeline on Cloud Run
+# Runbook: distillroi on Cloud Run
 
 Status: **deploy-ready; not applied (no cloud account connected).** Every command below is what an operator would
 run; none of it has been executed against a real project.
@@ -16,7 +16,7 @@ Nothing is downloaded from the internet at request time (`HF_HUB_OFFLINE=1`).
 ## 0. One-time bootstrap (per project)
 
 ```bash
-PROJECT=my-proj; REGION=us-central1; REPO=niravpatidar37/model-distillation-pipeline
+PROJECT=my-proj; REGION=us-central1; REPO=niravpatidar37/distillroi
 gcloud services enable run.googleapis.com artifactregistry.googleapis.com secretmanager.googleapis.com \
   iamcredentials.googleapis.com storage.googleapis.com --project $PROJECT
 # Cloud Run L4 GPU quota (request if 0): Console > IAM & Admin > Quotas > "Total Nvidia L4 GPU allocation, per project per region"
