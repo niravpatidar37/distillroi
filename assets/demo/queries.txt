@@ -1,0 +1,7 @@
+# banking77 test-split ids (data/processed/test_770.jsonl) used in the demo, picked from the
+# offline served predictions (results/preds/served_test_770.jsonl): two confident answers and two
+# that the router escalates. The live run decides afresh; what you see in the GIF is that live decision.
+test-824513f4c16856ac  # "I want to return an item."  (student confident)
+test-cc9242ad3d579ba3  # "What is the limit to top-up?"  (student confident)
+test-9dfd4803cfede9d4  # "I can't pull my card out of the ATM. Help me."  (low confidence offline)
+test-8b7c61dab1760c89  # "Can I freeze my card right now?"  (invalid label offline)
