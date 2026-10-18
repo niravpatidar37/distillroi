@@ -325,21 +325,6 @@ assets/demo/          demo.gif and the recorder that produced it (record.py, ask
 tests/                pytest: data, teacher, router/API security controls, cost maths (GPU tests marked)
 ```
 
-## Part of a portfolio
-
-distillroi is one of five production-shaped LLM-engineering MVPs that share the same spend-capped, provider-agnostic
-conventions (hard spend ledger, content-hash LLM cache, Cloud Run + Terraform deploy-readiness):
-
-- [hopcite](https://github.com/niravpatidar37/hopcite): graph RAG with cited multi-hop answers.
-- [tracedresearch](https://github.com/niravpatidar37/tracedresearch): multi-agent research assistant with traced runs.
-- [llmfailover](https://github.com/niravpatidar37/llmfailover): self-healing LLM gateway with circuit breakers and failover.
-- [kappajudge](https://github.com/niravpatidar37/kappajudge): LLM-as-a-judge calibration and an evaluation regression gate.
-- **distillroi** (this repo): distillation, a confidence router, and the break-even.
-
-This repo covers the cost side (when a small model pays off); the others cover retrieval, agents, reliability and
-evaluation. For an open-ended task where exact-match accuracy does not apply, a calibrated judge such as
-kappajudge's would replace the accuracy metric used here.
-
 ## Resume line
 
 Distilled a frontier-model task (gpt-oss-120b, 77-way banking intent classification) into a 1.5B QLoRA student at
