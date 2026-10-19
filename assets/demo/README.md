@@ -30,7 +30,7 @@ adds the window chrome.
 # 1. take the shared GPU lock, free VRAM, start the stack with paid teacher calls off
 mkdir F:/.portfolio-brief/gpu.lock
 "$LOCALAPPDATA/Programs/Ollama/ollama.exe" stop llama3.1:8b        # if another build left it loaded
-STUDENT_MODEL_DIR=./artifacts/merged/q15_r16 ROUTER_THRESHOLD=0.82 TEACHER_ENABLED=false docker compose up -d
+STUDENT_MODEL_DIR=./artifacts/merged/q15_r16 ROUTER_THRESHOLD=0.82 TEACHER_ENABLED=false docker compose --profile gpu up -d
 curl -s 127.0.0.1:8115/readyz                                      # wait for {"student":true,...}
 .venv/Scripts/python.exe assets/demo/ask.py assets/demo/queries.txt  # warm-up dry run
 

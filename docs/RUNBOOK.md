@@ -120,7 +120,7 @@ gcloud run services update distill-prod-router --region $REGION --update-env-var
 
 This rolls a new revision, so it covers every instance. The router keeps serving student answers; escalations come
 back as `source: student_degraded` with `low_confidence: true`, and 503 only when the student output is not a valid
-label. Re-enable with `TEACHER_ENABLED=true`. Locally: `TEACHER_ENABLED=false docker compose up -d router`.
+label. Re-enable with `TEACHER_ENABLED=true`. Locally: `TEACHER_ENABLED=false docker compose --profile gpu up -d router`.
 
 Runtime switch (no restart): `POST /admin/kill-switch {"teacher_enabled": false}` with `X-Admin-Key`. It exists only
 when `ADMIN_API_KEY` is set (404 otherwise) and is **per instance**, so on Cloud Run (no admin key is configured by
