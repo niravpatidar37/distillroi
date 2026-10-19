@@ -1,0 +1,59 @@
+# CI / no-GPU smoke stack. TEST ONLY - never used for a deployment.
+#   docker compose -f docker-compose.yml -f compose.smoke.yml up -d --build --wait
+# * fake-llm: deterministic fake of the vLLM (student) and Groq (teacher) OpenAI-compatible APIs
+#   (smoke/fake_llm.py, Dockerfile target `fake-llm`). It refuses to start with ENV=prod, and the router refuses
+#   its replies (x-distill-fake header) and any http backend when ENV=prod.
+# * firestore: the official Firestore emulator, so the shared (cross-instance) spend cap runs on real
+#   Firestore semantics (compare-and-swap preconditions).
+# No secrets: GROQ_API_KEY below is a placeholder the fake server ignores; the router/admin keys are generated
+# per CI run (see .github/workflows/ci.yml, job `smoke`).
+
+services:
+  fake-llm:
+    build:
+      context: .
+      target: fake-llm
+    image: p5-distill-fake-llm:ci
+    environment:
+      ENV: ci
+    ports:
+      - "127.0.0.1:18000:8000"
+    read_only: true
+    tmpfs: [/tmp]
+    security_opt: ["no-new-privileges:true"]
+    cap_drop: [ALL]
+
+  firestore:
+    # google-cloud-cli "emulators" image, pinned by digest
+    image: gcr.io/google.com/cloudsdktool/google-cloud-cli:emulators@sha256:dff831e11d4013af597446d43e1222a9196d9b2b0c8180606bb2e35bf1ea6e03
+    command: ["gcloud", "emulators", "firestore", "start", "--host-port=0.0.0.0:8080"]
+    ports:
+      - "127.0.0.1:18085:8080"
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8080/"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+      start_period: 10s
+
+  router:
+    depends_on: !override
+      fake-llm:
+        condition: service_healthy
+      firestore:
+        condition: service_healthy
+    env_file: !reset []
+    environment:
+      ENV: ci
+      STUDENT_BASE_URL: http://fake-llm:8000/v1
+      GROQ_BASE_URL: http://fake-llm:8000/v1
+      GROQ_API_KEY: placeholder-for-fake-llm
+      FAULT_INJECTION_ENABLED: "true"
+      SPEND_STORE: firestore
+      FIRESTORE_PROJECT: demo-distill
+      FIRESTORE_EMULATOR_HOST: firestore:8080
+      SHARED_SPEND_CAP_USD: "0.05"
+      LLM_SPEND_LEDGER: /tmp/ledger.jsonl
+      RATE_LIMIT_RPS: "5"
+      RATE_LIMIT_BURST: "30"
+    volumes: !reset []
