@@ -24,6 +24,10 @@ updates:
     directory: /
     schedule:
       interval: weekly
+    ignore:
+      # torch comes from the explicit CUDA 12.8 wheel index ([tool.uv.sources]); Dependabot cannot resolve it
+      # (first run: "no version of torch==2.14.1"). Bump the train extra by hand: uv lock --upgrade-package torch.
+      - dependency-name: torch
     groups:
       python:
         patterns: ["*"]
