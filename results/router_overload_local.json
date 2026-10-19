@@ -1,0 +1,42 @@
+{
+  "what": "scripts/load_router.py against the local router (127.0.0.1:8115, Windows host -> Docker Desktop/WSL2 port forward -> router container -> vLLM container), real q15_r16 student on the RTX 3060 Laptop, TEACHER_ENABLED=false, rate limit off, admission control effectively OFF (MAX_INFLIGHT=100000, MAX_QUEUE=0)",
+  "date": "2026-10-19",
+  "result": "negative: at c=128 the unguarded path collapsed (7.2 ok/s, p95 5.4 s, 398 of 1500 requests failed at the transport level, 50 x 503 when the router could not reach the student). Docker Desktop's engine became unresponsive during/after this run (docker _ping returned HTTP 500 immediately after), so the c=256 row (all transport errors) is NOT a measurement of the router, and the planned comparison with admission control ON (MAX_INFLIGHT=32, MAX_QUEUE=32) could not be measured on this box.",
+  "interpretation": "Consistent with the README hypothesis that the host-side path (WSL2 port forward) is what collapses: admission control inside the router cannot protect a proxy that sits in front of it. Its 429 + Retry-After behaviour is verified by tests (tests/test_hardening.py) and by the smoke runs, not by this load test.",
+  "runs": [
+    {
+      "concurrency": 128,
+      "requests": 1500,
+      "wall_s": 145.83,
+      "status_counts": {
+        "-1": 398,
+        "200": 1052,
+        "503": 50
+      },
+      "ok_per_s": 7.2,
+      "ok_p50_ms": 1192.0,
+      "ok_p95_ms": 5417.9,
+      "ok_p99_ms": 5986.3,
+      "ok_mean_ms": 1835.8,
+      "rejected_429_p95_ms": null,
+      "retry_after_values": {},
+      "errors": 398
+    },
+    {
+      "concurrency": 256,
+      "requests": 1500,
+      "wall_s": 12.54,
+      "status_counts": {
+        "-1": 1500
+      },
+      "ok_per_s": 0.0,
+      "ok_p50_ms": null,
+      "ok_p95_ms": null,
+      "ok_p99_ms": null,
+      "ok_mean_ms": null,
+      "rejected_429_p95_ms": null,
+      "retry_after_values": {},
+      "errors": 1500
+    }
+  ]
+}
