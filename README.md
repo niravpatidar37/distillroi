@@ -168,16 +168,22 @@ are in [`.env.example`](.env.example); never commit values.
 **Run the router against a student you already trained** (weights are never in git; `artifacts/` is ignored):
 
 ```bash
-STUDENT_MODEL_DIR=./artifacts/merged/q15_r16 ROUTER_THRESHOLD=0.82 docker compose up -d --build
+STUDENT_MODEL_DIR=./artifacts/merged/q15_r16 ROUTER_THRESHOLD=0.82 docker compose --profile gpu up -d --build
 curl -s 127.0.0.1:8115/readyz
 curl -s -X POST 127.0.0.1:8115/v1/classify -H 'content-type: application/json' \
   -d '{"text": "I want to return an item."}'
-# -> {"label": ..., "source": "student" | "teacher" | "student_degraded", "reason": ..., "student_confidence": ..., "latency_ms": ...}
-docker compose down
+# -> {"label": ..., "source": "student" | "teacher" | "student_degraded", "reason": ..., "student_confidence": ...,
+#     "latency_ms": ..., "low_confidence": false, "teacher_unavailable": false}
+python scripts/smoke.py --base-url http://127.0.0.1:8115 --json-out /tmp/smoke.json   # end-to-end checks
+docker compose --profile gpu down
 ```
 
 Set `TEACHER_ENABLED=false` to run with no paid calls at all (escalations then return the student's answer as
-`student_degraded`, or 503 when the student's output is not a valid label).
+`student_degraded` with `low_confidence: true`, or 503 when the student's output is not a valid label).
+
+**No GPU?** The smoke stack used by CI runs the real router image against a deterministic fake of the vLLM and Groq
+APIs (test-only, refuses `ENV=prod`) plus the Firestore emulator:
+`docker compose -f docker-compose.yml -f compose.smoke.yml up -d --build --wait`, then the same smoke script.
 
 **The whole pipeline**, end to end:
 
@@ -190,7 +196,7 @@ uv run python scripts/build_splits.py                       # freeze train/val B
 for c in q05_r8 q05_r32 q15_r16; do uv run python scripts/train.py configs/train/$c.yaml; done
 uv run python scripts/select_student.py                     # pick on val
 uv run python scripts/eval_student_hf.py q15_r16 --merge --split val --split test_770 --split test_full
-STUDENT_MODEL_DIR=./artifacts/merged/q15_r16 ROUTER_THRESHOLD=0.82 docker compose up -d --build
+STUDENT_MODEL_DIR=./artifacts/merged/q15_r16 ROUTER_THRESHOLD=0.82 docker compose --profile gpu up -d --build
 uv run python scripts/bench_vllm.py predict --split val --split test_770 --split test_full
 uv run python scripts/bench_vllm.py sweep
 uv run python scripts/router_eval.py                        # threshold on val, applied once to test
@@ -198,7 +204,7 @@ uv run python scripts/bench_teacher.py --n 10 --concurrency 1 --concurrency 4
 uv run python scripts/live_router.py --n 40 --concurrency 2 --offset 100
 uv run python scripts/report.py                             # benchmark.json/.md + plots
 uv run pytest -q                                            # CI subset; -m gpu / -m integration locally
-docker compose down
+docker compose --profile gpu down
 ```
 
 ## Architecture
@@ -249,10 +255,20 @@ Threat model: callers send untrusted text; both models' outputs are untrusted; t
 | No query text in logs (hash + length), PII/secret redaction in JSON logs | `logs.py` | `test_api_logs_never_contain_query_text`, `test_redact_masks_pii_and_secrets` |
 | Service-to-service ID token from a fixed metadata URL (no SSRF surface) | `student.GcpIdTokenSource` | `test_student_client_attaches_cached_gcp_id_token` |
 | Groq org id redacted from quota errors | `teacher._chat` | `test_429_tpm_is_retried_but_tpd_stops` |
+| Teacher spend cap shared by all router instances (Firestore budget leases, compare-and-swap, fail closed) | `shared_spend.LeaseBudget`, `teacher._chat` | `test_shared_cap_holds_across_concurrent_instances`, `test_store_unreachable_fails_closed`, `test_shared_cap_holds_against_the_firestore_emulator` |
+| Overload: bounded in-flight + bounded queue -> 429 + Retry-After; per-client rate limit; 413 body cap | `guards.AdmissionControl`, `guards.RateLimit`, `guards.BodySizeLimit` | `test_admission_sheds_excess_with_429_and_retry_after`, `test_rate_limit_429_with_retry_after_per_client`, `test_body_limit_counts_streamed_chunks_without_content_length` |
+| Teacher unavailable -> degrade (flagged `low_confidence`) or 503 per policy; breaker; deadline | `router.Router`, `router.TeacherBreaker`, `app.classify` | `test_teacher_unavailable_degrades_with_low_confidence_flag`, `test_teacher_unavailable_fail_policy_returns_503_with_retry_after`, `test_breaker_opens_skips_teacher_then_probes_and_recovers` |
+| Fake LLM / fault hooks / emulator / http backends refused when `ENV=prod` | `settings.Settings`, `student`, `teacher`, `smoke/fake_llm.py` | `test_prod_refuses_test_only_configuration`, `test_router_refuses_fake_backend_replies_in_prod_mode`, `test_fake_llm_server_refuses_to_start_in_prod` |
+| Security headers, generic 500 with no trace, no `/docs` | `guards.SecurityHeaders`, `app` | `test_security_headers_and_no_server_banner`, `test_unhandled_error_is_generic_500_without_trace` |
+
+Each control above was mutation-checked: 22 of 22 single-point mutants (skip the check, fail open, drop the CAS
+precondition, ...) are caught by the tests ([`results/mutation_hardening.json`](results/mutation_hardening.json)).
 
 **Residual risk:** prompt injection can still change which (valid) label is returned; the enum bounds the blast
-radius to a misclassification. Teacher responses are used for nothing but a label. On Cloud Run the spend ledger is
-per instance (see limits), so the global cap is split, not exact.
+radius to a misclassification. Teacher responses are used for nothing but a label. Rate limits and admission
+control are per instance (Cloud Run's max instances bounds the total). The shared spend cap assumes each call's
+actual cost stays under its worst-case estimate (prompt + `max_tokens` at list price), and a crashed instance can
+strand up to one lease ($0.05 by default) until the cap is reset; both errors make the cap stricter, not looser.
 
 OWASP LLM Top 10 (2025): LLM01 prompt injection -> enum-bounded output, "data, not instructions" prompt; LLM02
 sensitive information disclosure -> no query text in logs, redaction; LLM03 supply chain -> pinned model revisions,
@@ -272,22 +288,53 @@ Report vulnerabilities privately: [SECURITY.md](SECURITY.md).
 - **The student is not in the "mid-nineties of teacher".** 90.2% of teacher accuracy; the router closes the gap by
   sending 28% of traffic to the teacher, which halves rather than eliminates the API bill at high volume.
 - **Rank 8 underfits** (61.8% test): too little capacity for 77 classes from 1.2K examples.
-- **Saturation beyond c=64** on this box; the cause (host networking vs GPU) was not isolated.
+- **Saturation beyond c=64** on this box. A later probe isolated it to the host-side path: at c=128 the Windows ->
+  WSL2 port forward collapsed (7.2 ok/s, 398 of 1,500 requests failed) while the same load inside the Docker network
+  had no errors at 68 ok/s. The router now caps in-flight work and sheds the excess with 429 + `Retry-After`, but on
+  this laptop that did not lower the p95 of admitted requests (~5.3 s either way;
+  [`results/router_overload_local.json`](results/router_overload_local.json)). Where that latency comes from was not
+  isolated.
 - **Latency/throughput are from a laptop GPU through WSL2**, then priced at L4 rates. An L4 is faster with 4x the
   memory, so the cost side is conservative, but the numbers are not Cloud Run measurements.
 - **The teacher latency sample is small** (10 requests per concurrency level) because of the token quota.
-- The spend ledger on Cloud Run is local to each instance (cap split across `router_max_instances`); a shared ledger
-  (e.g. Firestore/Redis) would be needed for an exact global cap.
+- The shared (cross-instance) spend cap runs on Firestore, but it has only been exercised against the Firestore
+  emulator and an in-memory model of it, never against a real Firestore database (no cloud account).
 
 ## Cost of this build (ledger)
 
 Total teacher spend for this project, read from the shared ledger (`F:/.llm-spend/ledger.jsonl`, project
-`p5-distill`), priced at Groq's paid rate: **$0.040** for 68 paid calls (70,606 input + 49,016 output tokens):
+`p5-distill`), priced at Groq's paid rate: **$0.040** for 70 paid calls (71,782 input + 49,064 output tokens):
 teacher ceiling on 770 test queries ($0.014), labelling 1,300 training queries ($0.020 + two earlier batches), the
-online latency benchmark ($0.002) and the live router run ($0.0006). The key used is free tier, so the actual
+local smoke run (2 escalations, $0.0002), the online latency benchmark ($0.002) and the live router run ($0.0006). The key used is free tier, so the actual
 charge was $0. GPU: local laptop, $0. Recording the demo GIF made no paid calls (teacher disabled). Estimate before
 launch: a 50-query probe used 35 tokens per query; the full test run averaged 49 tokens per query (more reasoning
 tokens), about $0.000018 per labelled query.
+
+## Production readiness
+
+**Smoke test, run for real:** `scripts/smoke.py` against the local dev stack (real vLLM student q15_r16 on the RTX
+3060 Laptop, real Groq gpt-oss-120b teacher, the portfolio spend ledger, fault hooks on with `ENV=dev`):
+**14 of 14 checks passed in 1.7 s** ([`results/smoke_local.json`](results/smoke_local.json)). It covers liveness,
+readiness (student reachable, teacher configured, spend store reachable), security headers, no stack traces, auth
+rejected/accepted, 422 on bad input, 422/413 on oversize input, a real classification (banking77 label + confidence
+0.986 from the student), low confidence -> real teacher answer, invalid student output -> real teacher answer, the
+teacher-unavailable policy, the runtime kill switch (student-only path, zero teacher calls while off) and the rate
+limiter (429 + `Retry-After`). CI runs the same script on every PR (job `smoke`) against the compose stack with a
+deterministic, prod-refusing fake of the vLLM and Groq APIs plus the Firestore emulator; deploy.yml runs it after
+staging and on the prod candidate and 10% canary, rolling back on failure.
+
+| Item | Status |
+|---|---|
+| End-to-end smoke script, local run + CI job + post-deploy gates | done (local 14/14; CI green) |
+| Shared teacher spend cap across instances (Firestore budget leases, fail closed) | done in code; tested on an in-memory model and the Firestore emulator; **not applied** to real Firestore |
+| Overload: bounded in-flight + queue -> 429 + `Retry-After`; per-client rate limit; body cap | done (unit + smoke tested). Load probe at c=128 ([`results/router_overload_local.json`](results/router_overload_local.json)): through the WSL2 port forward the unguarded path collapsed (7.2 ok/s, 398/1500 transport errors); inside the Docker network the same load had 0 errors at 68 ok/s, so the collapse is the port forward. With admission on, 8.5-14% got a fast 429 + `Retry-After`, but admitted p95 did **not** improve (~5.3 s vs 5.1 s): a negative result |
+| Teacher down / out of quota / over budget: degrade (flagged `low_confidence`) or 503, breaker, alert | done |
+| Prod gates: fake LLM, fault hooks, emulator and http backends refused when `ENV=prod` | done (3 independent gates, tested) |
+| Monitoring as code: uptime, SLO burn rate, 5xx, latency, saturation, app alerts | written and validated (fmt/validate/tflint/checkov); **not applied** |
+| Supply chain: Dependabot, CycloneDX SBOM artifact, keyless cosign sign + verify | Dependabot + SBOM active; signing runs in deploy.yml, **skipped** until GCP is connected |
+| Branch protection on `main` (required CI checks, up to date, no force push/delete) | done |
+| Cloud deployment | **not applied** (no cloud account connected) |
+| Human | connect GCP (repo variables + `production` reviewers), set `alert_email`, load-test on Cloud Run, verify the shared cap on real Firestore |
 
 ## Deployment
 
@@ -306,15 +353,24 @@ mounted read-only (never fetched from the internet at request time); the Groq ke
 - One-time GCP bootstrap (WIF pool bound to `niravpatidar37/distillroi`, deployer SA, repo variables), rollback, key
   rotation, kill switch: [docs/RUNBOOK.md](docs/RUNBOOK.md). SLOs and monthly cost (~$764/month per always-on L4
   instance, estimate): [docs/SLO.md](docs/SLO.md).
-- No database, so no migrations; the service is stateless apart from the spend ledger.
+- Monitoring as code (`infra/terraform/modules/distill/monitoring.tf`): uptime check on `/healthz`, availability SLO
+  with multi-window burn-rate alerts, 5xx ratio, p95 latency (all paths and student path), saturation, and
+  app alerts (teacher unavailable, spend cap reached, load shedding, escalation rate) to an email channel.
+- Supply chain: Dependabot (actions, Docker, Compose, uv, Terraform), CycloneDX SBOM per CI run, keyless cosign
+  signature on every pushed router image, verified before staging and prod.
+- No relational database, so no migrations. The only state is one Firestore document per environment holding the
+  shared teacher spend cap (created on first use).
 
 ## Project layout
 
 ```
 src/distill/          the package: data, labels, teacher (Groq), student (vLLM client), router, FastAPI app,
-                      costs (break-even), spend ledger, metrics, settings, JSON logs with redaction
+                      guards (429/413/headers), shared spend cap (Firestore), costs (break-even), spend ledger,
+                      metrics, settings, JSON logs with redaction
+smoke/                fake_llm.py: TEST-ONLY fake of the vLLM + Groq APIs for the no-GPU smoke stack
 scripts/              pipeline steps: prepare_data, run_teacher, build_splits, train, select_student,
-                      eval_student_hf, bench_vllm, router_eval, bench_teacher, live_router, report
+                      eval_student_hf, bench_vllm, router_eval, bench_teacher, live_router, report;
+                      smoke.py (end-to-end smoke test), load_router.py (overload probe)
 configs/train/        QLoRA configs (q05_r8, q05_r32, q15_r16, and the unrun 7B config)
 data/processed/       banking77 splits + teacher-labelled pool (CC-BY-4.0); raw downloads and caches are ignored
 results/              every number in this README (benchmark, router, sweeps, training logs, predictions)

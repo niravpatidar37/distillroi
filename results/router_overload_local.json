@@ -1,0 +1,136 @@
+{
+  "what": "scripts/load_router.py, real q15_r16 student on vLLM (RTX 3060 Laptop, on AC power), TEACHER_ENABLED=false, rate limit off, 1 router process. 503s are the student's invalid outputs with the teacher off (~4%, matching the 4.3% invalid rate on test), not errors.",
+  "date": "2026-10-19",
+  "host_path": {
+    "path": "Windows host -> Docker Desktop/WSL2 port forward (127.0.0.1:8115) -> router container -> vLLM container",
+    "config": "unguarded (MAX_INFLIGHT=100000, MAX_QUEUE=0)",
+    "runs": [
+      {
+        "concurrency": 128,
+        "requests": 1500,
+        "wall_s": 145.83,
+        "status_counts": {
+          "-1": 398,
+          "200": 1052,
+          "503": 50
+        },
+        "ok_per_s": 7.2,
+        "ok_p50_ms": 1192.0,
+        "ok_p95_ms": 5417.9,
+        "ok_p99_ms": 5986.3,
+        "ok_mean_ms": 1835.8,
+        "rejected_429_p95_ms": null,
+        "retry_after_values": {},
+        "errors": 398
+      },
+      {
+        "concurrency": 256,
+        "requests": 1500,
+        "wall_s": 12.54,
+        "status_counts": {
+          "-1": 1500
+        },
+        "ok_per_s": 0.0,
+        "ok_p50_ms": null,
+        "ok_p95_ms": null,
+        "ok_p99_ms": null,
+        "ok_mean_ms": null,
+        "rejected_429_p95_ms": null,
+        "retry_after_values": {},
+        "errors": 1500
+      }
+    ],
+    "note": "c=128 collapsed: 7.2 ok/s, p95 5.4 s, 398 of 1500 requests failed at the transport level. Docker Desktop's engine became unresponsive right after (docker _ping -> HTTP 500), so the c=256 row (all transport errors) is not a measurement of the router."
+  },
+  "in_network": {
+    "path": "load generator container on the compose network -> router container -> vLLM container (no Windows/WSL2 port forward)",
+    "runs": [
+      {
+        "config": "unguarded (MAX_INFLIGHT=100000, MAX_QUEUE=0)",
+        "concurrency": 128,
+        "requests": 1000,
+        "wall_s": 14.07,
+        "status_counts": {
+          "200": 958,
+          "503": 42
+        },
+        "ok_per_s": 68.1,
+        "ok_p50_ms": 1409.4,
+        "ok_p95_ms": 5071.1,
+        "ok_p99_ms": 6584.4,
+        "ok_mean_ms": 1758.6,
+        "rejected_429_p95_ms": null,
+        "retry_after_values": {},
+        "errors": 0
+      },
+      {
+        "config": "guarded MAX_INFLIGHT=32 MAX_QUEUE=32",
+        "concurrency": 128,
+        "requests": 1000,
+        "wall_s": 13.81,
+        "status_counts": {
+          "200": 879,
+          "429": 85,
+          "503": 36
+        },
+        "ok_per_s": 63.6,
+        "ok_p50_ms": 1224.5,
+        "ok_p95_ms": 5455.1,
+        "ok_p99_ms": 7584.2,
+        "ok_mean_ms": 1797.7,
+        "rejected_429_p95_ms": 317.6,
+        "retry_after_values": {
+          "1": 85
+        },
+        "errors": 0
+      },
+      {
+        "config": "guarded MAX_INFLIGHT=16 MAX_QUEUE=16",
+        "concurrency": 128,
+        "requests": 1000,
+        "wall_s": 13.51,
+        "status_counts": {
+          "200": 864,
+          "429": 99,
+          "503": 37
+        },
+        "ok_per_s": 63.9,
+        "ok_p50_ms": 1195.3,
+        "ok_p95_ms": 5272.0,
+        "ok_p99_ms": 7403.9,
+        "ok_mean_ms": 1750.6,
+        "rejected_429_p95_ms": 458.3,
+        "retry_after_values": {
+          "1": 99
+        },
+        "errors": 0
+      },
+      {
+        "config": "guarded MAX_INFLIGHT=16 MAX_QUEUE=16 (repeat, docker stats sampled mid-run: router 20.8% CPU, vLLM 124.8% CPU, load generator 67.4% CPU; GPU 80% util, 61 W, 1507 MHz)",
+        "concurrency": 128,
+        "requests": 1000,
+        "wall_s": 14.22,
+        "status_counts": {
+          "200": 820,
+          "429": 143,
+          "503": 37
+        },
+        "ok_per_s": 57.7,
+        "ok_p50_ms": 1249.5,
+        "ok_p95_ms": 5393.9,
+        "ok_p99_ms": 6884.9,
+        "ok_mean_ms": 1862.2,
+        "rejected_429_p95_ms": 3969.8,
+        "retry_after_values": {
+          "1": 143
+        },
+        "errors": 0
+      }
+    ]
+  },
+  "findings": [
+    "Same c=128 load with no port forward: 0 transport errors and 68 ok/s (vs 398 errors and 7.2 ok/s through the port forward). The c>64 collapse is in the host-side path, as the README suspected; the GPU path degrades (p95 ~5 s) but does not fail.",
+    "Admission control works as designed (8.5-14% of requests got a 429 with Retry-After: 1, no transport errors), but on this box it did NOT lower the p95 of admitted requests (5.1 s unguarded vs 5.3-5.5 s guarded) and throughput was 6-15% lower. Negative result: the extra latency is not explained by router or vLLM queueing (16 in flight should give well under 1 s); the client-side load generator (67% CPU) and Docker Desktop networking are suspects; not isolated.",
+    "Admission control cannot protect a proxy in front of the router (the WSL2 port forward); on Cloud Run that layer is Google's front end plus max_instance_request_concurrency."
+  ]
+}

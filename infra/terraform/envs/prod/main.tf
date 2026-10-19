@@ -21,6 +21,10 @@ module "distill" {
   teacher_spend_cap_usd = var.teacher_spend_cap_usd
   router_invokers       = var.router_invokers
   deletion_protection   = var.deletion_protection
+
+  spend_store                = var.spend_store
+  teacher_unavailable_policy = var.teacher_unavailable_policy
+  alert_email                = var.alert_email
 }
 
 output "router_url" {
@@ -46,4 +50,9 @@ output "model_bucket" {
 output "teacher_secret_id" {
   description = "Secret Manager secret for the Groq key."
   value       = module.distill.teacher_secret_id
+}
+
+output "spend_database" {
+  description = "Firestore database for the shared teacher spend cap."
+  value       = module.distill.spend_database
 }

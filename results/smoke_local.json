@@ -1,0 +1,105 @@
+{
+  "base_url": "http://127.0.0.1:8115",
+  "label": "local dev stack: real vLLM student (q15_r16, RTX 3060 Laptop) + real Groq gpt-oss-120b teacher + portfolio file ledger",
+  "started_at": "2026-10-19T06:44:40Z",
+  "duration_s": 1.71,
+  "passed": 14,
+  "failed": 0,
+  "skipped": 0,
+  "total": 14,
+  "ok": true,
+  "target": {
+    "env": "dev",
+    "version": "0.1.0",
+    "teacher_enabled": true,
+    "spend_store": "file",
+    "fault_injection": true,
+    "teacher_unavailable_policy": "degrade"
+  },
+  "checks": [
+    {
+      "name": "liveness /healthz",
+      "status": "PASS",
+      "detail": "200 ok",
+      "ms": 28.5
+    },
+    {
+      "name": "readiness /readyz (deps checked)",
+      "status": "PASS",
+      "detail": "student up, teacher_enabled=True, store=file, env=dev, faults=True",
+      "ms": 27.1
+    },
+    {
+      "name": "security headers",
+      "status": "PASS",
+      "detail": "nosniff, DENY, no-store, CSP, no server banner",
+      "ms": 1.9
+    },
+    {
+      "name": "errors carry no stack traces",
+      "status": "PASS",
+      "detail": "malformed->422, unknown->404, /docs->404, no internals in bodies",
+      "ms": 5.4
+    },
+    {
+      "name": "auth rejected without/wrong key",
+      "status": "PASS",
+      "detail": "no credentials -> 401, wrong key -> 401",
+      "ms": 4.9
+    },
+    {
+      "name": "auth accepted with key",
+      "status": "PASS",
+      "detail": "valid credentials -> 200",
+      "ms": 483.3
+    },
+    {
+      "name": "input validation -> 422",
+      "status": "PASS",
+      "detail": "blank/missing/wrong-type/empty -> 422",
+      "ms": 9.9
+    },
+    {
+      "name": "oversize input rejected",
+      "status": "PASS",
+      "detail": "501 chars -> 422, 64 KiB body -> 413",
+      "ms": 4.1
+    },
+    {
+      "name": "classify: valid label + confidence",
+      "status": "PASS",
+      "detail": "label=card_arrival conf=0.986 source=student (71 ms)",
+      "ms": 71.2
+    },
+    {
+      "name": "low confidence escalates",
+      "status": "PASS",
+      "detail": "low_confidence -> teacher label=card_arrival (444 ms)",
+      "ms": 444.4
+    },
+    {
+      "name": "invalid student output escalates",
+      "status": "PASS",
+      "detail": "invalid_output -> teacher label=card_arrival (308 ms)",
+      "ms": 307.8
+    },
+    {
+      "name": "teacher unavailable path",
+      "status": "PASS",
+      "detail": "policy=degrade -> 200 student answer flagged low_confidence (label=card_arrival)",
+      "ms": 65.3
+    },
+    {
+      "name": "kill switch: student-only path",
+      "status": "PASS",
+      "detail": "runtime kill switch: low-confidence -> student_degraded flagged, confident -> student; 0 teacher calls while off; re-enabled",
+      "ms": 199.6
+    },
+    {
+      "name": "rate limit -> 429 + Retry-After",
+      "status": "PASS",
+      "detail": "429 after 64 requests, Retry-After=1s, statuses={422: 40, 429: 24}",
+      "ms": 54.7
+    }
+  ]
+}

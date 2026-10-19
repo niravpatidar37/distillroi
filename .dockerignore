@@ -12,7 +12,9 @@ wandb
 infra
 configs
 scripts
+assets
 **/__pycache__
 .mypy_cache
 .ruff_cache
 .pytest_cache
+# smoke/ is needed only by the test-only `fake-llm` stage (never by the runtime stage)

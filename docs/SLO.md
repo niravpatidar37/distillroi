@@ -18,8 +18,24 @@ latency numbers they are based on were measured locally (RTX 3060 Laptop 6 GB, D
 Error budget policy: if availability or student-path p95 burns > 50% of the monthly budget in a week, freeze deploys
 and lower `vllm_concurrency` (scale out earlier) before adding features.
 
-Alerting (Cloud Monitoring, log-based metrics on the JSON logs): 5xx ratio > 1% for 10 min; p95 > 400 ms for 15 min;
-escalation rate outside band for 1 h; any `BudgetExceeded`; vLLM `/health` startup-probe failures.
+Alerting is code: `infra/terraform/modules/distill/monitoring.tf` (verified against hashicorp/google 8.7.0; not
+applied). Notification channel: email from `alert_email`.
+
+| Alert | Source | Threshold |
+|---|---|---|
+| Uptime | uptime check on the router `/healthz` (Monitoring service agent ID token) | failing from > 1 region |
+| 5xx ratio | `run.googleapis.com/request_count` 5xx / all | > 1% for 10 min |
+| Error-budget burn (multi-window) | SLO `availability` (99.5%, 28 d rolling, request-based) | fast: 14.4x over 1 h AND 5 min; slow: 6x over 6 h AND 30 min |
+| Latency, all paths | `run.googleapis.com/request_latencies` p95 | > 3 s for 15 min |
+| Latency, student path | log-based distribution of `latency_ms` where `source=student` | p95 > 400 ms for 15 min |
+| Saturation | instance_count vs max (router, vLLM), per-instance concurrency p95 | >= 80% of max for 15 min / vLLM at ceiling |
+| Teacher unavailable | log-based counter `teacher_unavailable` (label `cause`) | > 0 for 5 min |
+| Spend cap reached | same counter, `cause=budget_exceeded` | any |
+| Load shedding | log-based counter `request_shed` (429 overloaded) | > 30/min for 10 min |
+| Escalation rate | log-based counter `classified` by `source` | teacher share > 40% over 1 h |
+
+Smoke test after every deploy (staging, prod candidate, prod 10% canary): `scripts/smoke.py`, see
+[RUNBOOK section 3](RUNBOOK.md#3-deploy-and-verify).
 
 ## Monthly cost estimate (estimate - verify against the pricing pages)
 
@@ -37,6 +53,8 @@ needs >= 4 vCPU and 16 GiB, so one always-on instance costs (0.0001867 + 4 x 0.0
 | Artifact Registry (vLLM image ~10 GB + router) | ~$1 / month storage | shared |
 | GCS model bucket (~1-3 GB, versioned) | < $0.10 / month | < $0.10 |
 | Secret Manager (1 secret, few accesses) | < $0.10 / month | < $0.10 |
+| Firestore (shared spend cap: ~2 reads + 1-2 writes per $0.05 budget lease) | ~$0 (daily free tier; list price $0.03 / 100K reads, $0.09 / 100K writes, https://cloud.google.com/firestore/pricing) | ~$0 |
+| Cloud Monitoring (1 uptime check, 4 log-based metrics, 10 alert policies) | within the free allotments at this volume (https://cloud.google.com/stackdriver/pricing) | same |
 
 The fixed GPU cost dominates: below the break-even volume in the README, calling the teacher API directly is cheaper.
 Cost levers: Cloud Run committed-use discounts do not apply to GPUs on this price page; zonal-redundancy-disabled is

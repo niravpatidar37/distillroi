@@ -64,3 +64,20 @@ variable "deletion_protection" {
   description = "Protect services from destroy."
   type        = bool
 }
+
+variable "spend_store" {
+  description = "firestore (shared cross-instance spend cap) or file (per-instance cap = cap / max instances)."
+  type        = string
+  default     = "firestore"
+}
+
+variable "teacher_unavailable_policy" {
+  description = "degrade (student answer flagged low_confidence) or fail (503) when the teacher is unavailable."
+  type        = string
+  default     = "degrade"
+}
+
+variable "alert_email" {
+  description = "On-call email for alert notifications."
+  type        = string
+}

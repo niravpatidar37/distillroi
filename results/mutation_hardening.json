@@ -1,0 +1,118 @@
+{
+ "tool": "verifying-security-guarantees/scripts/mutate.py (one mutant at a time, full pytest -x, file restored)",
+ "note": "first run: 20/22 killed; the two admission-control survivors exposed weak tests (no timing/queue assertion), the tests were tightened and both mutants re-run",
+ "killed": 22,
+ "total": 22,
+ "mutants": [
+  {
+   "status": "KILLED",
+   "mutant": "CAS: drop updateTime precondition",
+   "killed_by": "['FAILED tests/test_shared_spend.py::test_shared_cap_holds_across_concurrent_instances[0]']"
+  },
+  {
+   "status": "KILLED",
+   "mutant": "lease: grant even past the cap",
+   "killed_by": "['FAILED tests/test_shared_spend.py::test_shared_cap_holds_across_concurrent_instances[0]']"
+  },
+  {
+   "status": "KILLED",
+   "mutant": "store down: fail open",
+   "killed_by": "['FAILED tests/test_shared_spend.py::test_store_unreachable_fails_closed - Fail...']"
+  },
+  {
+   "status": "KILLED",
+   "mutant": "teacher: skip shared reserve",
+   "killed_by": "['FAILED tests/test_shared_spend.py::test_teacher_checks_shared_cap_before_any_network_call']"
+  },
+  {
+   "status": "KILLED",
+   "mutant": "admission: no queue bound",
+   "killed_by": "['FAILED tests/test_hardening.py::test_admission_sheds_excess_with_429_and_retry_after']"
+  },
+  {
+   "status": "KILLED",
+   "mutant": "admission: no inflight bound",
+   "killed_by": "['FAILED tests/test_hardening.py::test_admission_sheds_excess_with_429_and_retry_after']"
+  },
+  {
+   "status": "KILLED",
+   "mutant": "rate limit: never limit",
+   "killed_by": "['FAILED tests/test_hardening.py::test_rate_limit_429_with_retry_after_per_client']"
+  },
+  {
+   "status": "KILLED",
+   "mutant": "body: ignore streamed size",
+   "killed_by": "['FAILED tests/test_hardening.py::test_body_limit_counts_streamed_chunks_without_content_length']"
+  },
+  {
+   "status": "KILLED",
+   "mutant": "headers: drop security headers",
+   "killed_by": "['FAILED tests/test_hardening.py::test_security_headers_and_no_server_banner - ...']"
+  },
+  {
+   "status": "KILLED",
+   "mutant": "prod gate: allow fault injection",
+   "killed_by": "['FAILED tests/test_hardening.py::test_prod_refuses_test_only_configuration[kw0]']"
+  },
+  {
+   "status": "KILLED",
+   "mutant": "prod gate: allow http backends",
+   "killed_by": "['FAILED tests/test_hardening.py::test_prod_refuses_test_only_configuration[kw2]']"
+  },
+  {
+   "status": "KILLED",
+   "mutant": "student: accept fake replies in prod",
+   "killed_by": "['FAILED tests/test_hardening.py::test_router_refuses_fake_backend_replies_in_prod_mode']"
+  },
+  {
+   "status": "KILLED",
+   "mutant": "teacher: accept fake replies in prod",
+   "killed_by": "['FAILED tests/test_hardening.py::test_teacher_refuses_fake_backend_replies_in_prod_mode']"
+  },
+  {
+   "status": "KILLED",
+   "mutant": "fake LLM: start in prod",
+   "killed_by": "['FAILED tests/test_hardening.py::test_fake_llm_server_refuses_to_start_in_prod']"
+  },
+  {
+   "status": "KILLED",
+   "mutant": "faults honoured without the flag",
+   "killed_by": "['FAILED tests/test_hardening.py::test_fault_header_ignored_unless_enabled - As...']"
+  },
+  {
+   "status": "KILLED",
+   "mutant": "policy fail ignored",
+   "killed_by": "['FAILED tests/test_hardening.py::test_teacher_unavailable_fail_policy_returns_503_with_retry_after']"
+  },
+  {
+   "status": "KILLED",
+   "mutant": "degraded not flagged low_confidence",
+   "killed_by": "['FAILED tests/test_hardening.py::test_teacher_unavailable_degrades_with_low_confidence_flag[exc0]']"
+  },
+  {
+   "status": "KILLED",
+   "mutant": "breaker never opens",
+   "killed_by": "['FAILED tests/test_hardening.py::test_breaker_opens_skips_teacher_then_probes_and_recovers']"
+  },
+  {
+   "status": "KILLED",
+   "mutant": "runtime kill switch no-op",
+   "killed_by": "['FAILED tests/test_hardening.py::test_runtime_kill_switch_stops_teacher_calls']"
+  },
+  {
+   "status": "KILLED",
+   "mutant": "no teacher deadline",
+   "killed_by": "['FAILED tests/test_hardening.py::test_teacher_deadline_bounds_escalation_latency']"
+  },
+  {
+   "status": "KILLED",
+   "mutant": "admin open without key",
+   "killed_by": "['FAILED tests/test_hardening.py::test_admin_api_is_404_without_admin_key - Ass...']"
+  },
+  {
+   "status": "KILLED",
+   "mutant": "teacher_unavailable not logged",
+   "killed_by": "['FAILED tests/test_hardening.py::test_teacher_unavailable_is_logged_for_the_alert']"
+  }
+ ]
+}

@@ -95,12 +95,73 @@ jobs:
           test "$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:18080/readyz)" = "503"
           test "$(curl -s -o /dev/null -w '%{http_code}' -X POST -H 'content-type: application/json' \
             -d '{"text": ""}' http://127.0.0.1:18080/v1/classify)" = "422"
+      - name: runtime image contains no test-only code
+        run: docker run --rm --entrypoint sh distill-router:ci -c 'test ! -e /app/fake_llm.py && ! ls /app/.venv/lib/python3.12/site-packages | grep -qi fake'
       - name: trivy image scan (HIGH/CRITICAL, fixed)
         run: >
           docker run --rm -v /var/run/docker.sock:/var/run/docker.sock
           aquasec/trivy:0.75.0@sha256:af6acf9a6b85dfe389a1941505c0ce9efef52a4719635e1a962f022a3d855daa
           image --severity HIGH,CRITICAL --ignore-unfixed --exit-code 1 --no-progress
           distill-router:ci
+      - name: CycloneDX SBOM of the router image (trivy)
+        run: >
+          docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v "$RUNNER_TEMP:/out"
+          aquasec/trivy:0.75.0@sha256:af6acf9a6b85dfe389a1941505c0ce9efef52a4719635e1a962f022a3d855daa
+          image --format cyclonedx --output /out/sbom.cdx.json --no-progress distill-router:ci
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: sbom-cyclonedx
+          path: ${{ runner.temp }}/sbom.cdx.json
+          if-no-files-found: error
+
+  smoke:
+    # Full compose stack with NO GPU and NO secrets: the router image + a deterministic FAKE LLM server (vLLM and
+    # Groq APIs, test-only, refuses ENV=prod) + the Firestore emulator for the shared spend cap.
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    env:
+      COMPOSE: docker compose -f docker-compose.yml -f compose.smoke.yml
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
+        with:
+          version: ${{ env.UV_VERSION }}
+          python-version: "3.12"
+      - name: per-run router + admin keys (random, masked, never stored)
+        run: |
+          k=$(openssl rand -hex 24); a=$(openssl rand -hex 24)
+          echo "::add-mask::$k"; echo "::add-mask::$a"
+          { echo "ROUTER_API_KEY=$k"; echo "SMOKE_API_KEY=$k"; echo "ADMIN_API_KEY=$a"; echo "SMOKE_ADMIN_KEY=$a"; } >> "$GITHUB_ENV"
+      - name: fake LLM image refuses to start with ENV=prod
+        run: |
+          docker build --target fake-llm -t p5-distill-fake-llm:ci .
+          if docker run --rm -e ENV=prod p5-distill-fake-llm:ci; then echo "fake LLM started with ENV=prod"; exit 1; fi
+      - name: bring up the smoke stack (router + fake LLM + Firestore emulator)
+        run: $COMPOSE up -d --build --wait --wait-timeout 240
+      - name: smoke test (scripts/smoke.py)
+        run: |
+          python3 scripts/smoke.py --base-url http://127.0.0.1:8115 \
+            --json-out smoke-results/smoke_ci.json --label "ci (fake LLM + Firestore emulator)"
+      - name: shared spend cap holds across instances on the real Firestore emulator
+        env:
+          FIRESTORE_EMULATOR_HOST: 127.0.0.1:18085
+        run: |
+          uv sync --frozen
+          uv run pytest -q tests/test_shared_spend.py
+      - name: compose logs on failure
+        if: failure()
+        run: $COMPOSE logs --no-color --timestamps
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: always()
+        with:
+          name: smoke-summary
+          path: smoke-results/
+          if-no-files-found: warn
+      - name: tear down
+        if: always()
+        run: $COMPOSE down -v --remove-orphans
 
   terraform:
     runs-on: ubuntu-24.04

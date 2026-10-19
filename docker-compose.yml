@@ -1,12 +1,14 @@
 name: p5-distill
 
-# Local stack: vLLM serving the merged student + the router API.
-#   STUDENT_MODEL_DIR=./artifacts/merged/<config> docker compose up -d   (default ./artifacts/student)
+# Local stack: vLLM serving the merged student (GPU, profile "gpu") + the router API.
+#   STUDENT_MODEL_DIR=./artifacts/merged/q15_r16 docker compose --profile gpu up -d --build
 # Weights are mounted read-only from local disk; nothing is fetched from the internet at request time
-# (HF_HUB_OFFLINE=1). Both ports are bound to 127.0.0.1 only.
+# (HF_HUB_OFFLINE=1). Every port is bound to 127.0.0.1 only.
+# CI / no-GPU smoke stack: add `-f compose.smoke.yml` (fake LLM server + Firestore emulator, test only).
 
 services:
   vllm:
+    profiles: [gpu]
     # pinned by digest (v0.31.0 multi-arch index)
     image: vllm/vllm-openai:v0.31.0@sha256:c1c9f6fd5c109ba7f0546a59f5b2f15fb87f64c77782e90a27b648b42a8e67c3
     command:
@@ -49,14 +51,24 @@ services:
     depends_on:
       vllm:
         condition: service_healthy
+        required: false # absent in the CI smoke stack (compose.smoke.yml provides the fake student)
     env_file:
       - path: ${PORTFOLIO_ENV_FILE:-F:/.secrets/portfolio.env}
         required: false
     environment:
+      ENV: ${ROUTER_ENV:-dev}
       STUDENT_BASE_URL: http://vllm:8000/v1
       STUDENT_MODEL: distill-student
-      ROUTER_THRESHOLD: ${ROUTER_THRESHOLD:-0.5}
+      ROUTER_THRESHOLD: ${ROUTER_THRESHOLD:-0.82} # tuned on validation (results/router_eval.json)
       TEACHER_ENABLED: ${TEACHER_ENABLED:-true}
+      TEACHER_UNAVAILABLE_POLICY: ${TEACHER_UNAVAILABLE_POLICY:-degrade}
+      ROUTER_API_KEY: ${ROUTER_API_KEY:-}
+      ADMIN_API_KEY: ${ADMIN_API_KEY:-}
+      FAULT_INJECTION_ENABLED: ${FAULT_INJECTION_ENABLED:-false}
+      MAX_INFLIGHT: ${MAX_INFLIGHT:-64}
+      MAX_QUEUE: ${MAX_QUEUE:-64}
+      RATE_LIMIT_RPS: ${RATE_LIMIT_RPS:-20}
+      RATE_LIMIT_BURST: ${RATE_LIMIT_BURST:-40}
       LLM_SPEND_LEDGER: /ledger/ledger.jsonl
       PORT: "8080"
     volumes:
@@ -67,4 +79,5 @@ services:
     tmpfs: [/tmp]
     security_opt: ["no-new-privileges:true"]
     cap_drop: [ALL]
+    stop_grace_period: 25s
     restart: unless-stopped
