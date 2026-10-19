@@ -26,7 +26,9 @@ from pydantic import BaseModel, ValidationError
 
 from distill.costs import TeacherPrice
 from distill.labels import canonical_label, clean_query, labels
+from distill.shared_spend import SharedBudget
 from distill.spend import BudgetExceeded, SpendLedger, estimate_tokens
+from distill.student import FAKE_BACKEND_HEADER
 
 log = logging.getLogger(__name__)
 
@@ -170,8 +172,12 @@ class GroqTeacher:
         tokens_per_minute: int = 7000,
         max_attempts: int = 6,
         client: httpx.AsyncClient | None = None,
+        shared_budget: SharedBudget | None = None,
+        reject_fake_backend: bool = False,
     ) -> None:
         self.model = model
+        self.shared_budget = shared_budget
+        self.reject_fake_backend = reject_fake_backend
         self.price = price
         self.ledger = ledger
         self.cache_dir = cache_dir
@@ -238,7 +244,16 @@ class GroqTeacher:
         sys_p = system_prompt()
         est_in = estimate_tokens(len(sys_p) + len(user))
         estimate_usd = self.price.cost(est_in, max_tokens)
-        self.ledger.reserve(estimate_usd)  # raises BudgetExceeded before any network call
+        # Both caps are checked BEFORE any network call; either raises BudgetExceeded.
+        if self.shared_budget is not None:
+            await self.shared_budget.reserve(estimate_usd)  # cross-instance cap (Firestore leases)
+        try:
+            self.ledger.reserve(estimate_usd)  # local / portfolio ledger
+        except BudgetExceeded:
+            if self.shared_budget is not None:
+                await self.shared_budget.release(estimate_usd)
+            raise
+        settled = False
         try:
             await self.limiter.acquire(est_in + max_tokens // 4)
             body = {
@@ -275,6 +290,8 @@ class GroqTeacher:
                     if resp.status_code == 400:
                         return "", Usage(latency_s=latency)
                     raise TeacherError(f"teacher HTTP {resp.status_code}")
+                if self.reject_fake_backend and resp.headers.get(FAKE_BACKEND_HEADER):
+                    raise TeacherError("fake LLM backend refused (ENV=prod)")
                 data = resp.json()
                 u = data.get("usage") or {}
                 details = u.get("completion_tokens_details") or {}
@@ -286,11 +303,16 @@ class GroqTeacher:
                 )
                 usage.usd = self.price.cost(usage.input_tokens, usage.output_tokens)
                 self.ledger.record("groq", self.model, usage.input_tokens, usage.output_tokens, usage.usd)
+                if self.shared_budget is not None:
+                    await self.shared_budget.settle(estimate_usd, usage.usd)
+                    settled = True
                 content = (data.get("choices") or [{}])[0].get("message", {}).get("content") or ""
                 return str(content), usage
             raise TeacherError(f"teacher failed after {self.max_attempts} attempts ({last_err})")
         finally:
             self.ledger.release(estimate_usd)
+            if self.shared_budget is not None and not settled:
+                await self.shared_budget.release(estimate_usd)
 
 
 __all__ = [

@@ -15,6 +15,12 @@ import httpx
 
 from distill.labels import STUDENT_SYSTEM, canonical_label, clean_query
 
+FAKE_BACKEND_HEADER = "x-distill-fake"  # set by smoke/fake_llm.py; such replies are refused when ENV=prod
+
+
+class FakeBackendRejected(ValueError):
+    """A reply carried the fake-LLM marker while fake backends are forbidden (ENV=prod)."""
+
 
 @dataclass
 class StudentResult:
@@ -84,8 +90,10 @@ class StudentClient:
         timeout_s: float = 10.0,
         client: httpx.AsyncClient | None = None,
         gcp_id_token: bool = False,
+        reject_fake_backend: bool = False,
     ) -> None:
         self.model = model
+        self.reject_fake_backend = reject_fake_backend
         self.base_url = base_url.rstrip("/")
         self._client = client or httpx.AsyncClient(base_url=self.base_url, timeout=timeout_s)
         root = self.base_url[: -len("/v1")] if self.base_url.endswith("/v1") else self.base_url
@@ -112,6 +120,8 @@ class StudentClient:
             self.base_url + "/chat/completions", json=body, headers=await self._headers()
         )
         resp.raise_for_status()
+        if self.reject_fake_backend and resp.headers.get(FAKE_BACKEND_HEADER):
+            raise FakeBackendRejected("fake LLM backend refused (ENV=prod)")
         latency = time.perf_counter() - t0
         raw, conf, ntok = parse_completion(resp.json())
         return StudentResult(canonical_label(raw), raw, conf, latency, ntok)
