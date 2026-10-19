@@ -288,9 +288,12 @@ Report vulnerabilities privately: [SECURITY.md](SECURITY.md).
 - **The student is not in the "mid-nineties of teacher".** 90.2% of teacher accuracy; the router closes the gap by
   sending 28% of traffic to the teacher, which halves rather than eliminates the API bill at high volume.
 - **Rank 8 underfits** (61.8% test): too little capacity for 77 classes from 1.2K examples.
-- **Saturation beyond c=64** on this box; the cause (host networking vs GPU) was not isolated. The router now caps
-  in-flight work per instance and sheds the excess with 429 + `Retry-After` instead of letting every request slow
-  down (see [Production readiness](#production-readiness)); that bounds the damage but does not explain the cause.
+- **Saturation beyond c=64** on this box. A later probe isolated it to the host-side path: at c=128 the Windows ->
+  WSL2 port forward collapsed (7.2 ok/s, 398 of 1,500 requests failed) while the same load inside the Docker network
+  had no errors at 68 ok/s. The router now caps in-flight work and sheds the excess with 429 + `Retry-After`, but on
+  this laptop that did not lower the p95 of admitted requests (~5.3 s either way;
+  [`results/router_overload_local.json`](results/router_overload_local.json)). Where that latency comes from was not
+  isolated.
 - **Latency/throughput are from a laptop GPU through WSL2**, then priced at L4 rates. An L4 is faster with 4x the
   memory, so the cost side is conservative, but the numbers are not Cloud Run measurements.
 - **The teacher latency sample is small** (10 requests per concurrency level) because of the token quota.
@@ -324,7 +327,7 @@ staging and on the prod candidate and 10% canary, rolling back on failure.
 |---|---|
 | End-to-end smoke script, local run + CI job + post-deploy gates | done (local 14/14; CI green) |
 | Shared teacher spend cap across instances (Firestore budget leases, fail closed) | done in code; tested on an in-memory model and the Firestore emulator; **not applied** to real Firestore |
-| Overload: bounded in-flight + queue -> 429 + `Retry-After`; per-client rate limit; body cap | done (unit + smoke tested). Local load test is a **negative result**: the unguarded host -> WSL2 -> container path collapsed at c=128 and Docker Desktop's engine crashed, so the guarded comparison was not measured ([`results/router_overload_local.json`](results/router_overload_local.json)) |
+| Overload: bounded in-flight + queue -> 429 + `Retry-After`; per-client rate limit; body cap | done (unit + smoke tested). Load probe at c=128 ([`results/router_overload_local.json`](results/router_overload_local.json)): through the WSL2 port forward the unguarded path collapsed (7.2 ok/s, 398/1500 transport errors); inside the Docker network the same load had 0 errors at 68 ok/s, so the collapse is the port forward. With admission on, 8.5-14% got a fast 429 + `Retry-After`, but admitted p95 did **not** improve (~5.3 s vs 5.1 s): a negative result |
 | Teacher down / out of quota / over budget: degrade (flagged `low_confidence`) or 503, breaker, alert | done |
 | Prod gates: fake LLM, fault hooks, emulator and http backends refused when `ENV=prod` | done (3 independent gates, tested) |
 | Monitoring as code: uptime, SLO burn rate, 5xx, latency, saturation, app alerts | written and validated (fmt/validate/tflint/checkov); **not applied** |

@@ -1,12 +1,13 @@
 """ASGI guards for the router API: security headers + no stack traces, body size cap, per-client rate limit,
 and admission control (bounded concurrency + bounded queue, then 429 + Retry-After).
 
-Why admission control: the local vLLM sweep collapses above c=64 (p95 0.5 s -> 4.8 s at c=128, request errors
-at c=128/256), most likely in the Windows -> WSL2 port forward rather than on the GPU. Whatever the cause,
-unbounded concurrency turns overload into timeouts for everyone. Capping in-flight work per instance and
-rejecting the excess quickly with 429 + Retry-After keeps latency for admitted requests near the knee and lets
-clients (and Cloud Run's autoscaler) back off. Limits are per instance; Cloud Run's
-``max_instance_request_concurrency`` bounds what one instance can receive.
+Why admission control: the local vLLM sweep collapses above c=64 (p95 0.5 s -> 4.8 s at c=128, request
+errors at c=128/256). A later probe (results/router_overload_local.json) put that collapse in the Windows ->
+WSL2 port forward, not the GPU. Whatever the cause, unbounded concurrency turns overload into timeouts for
+everyone; capping in-flight work per instance and rejecting the excess quickly with 429 + Retry-After gives
+callers (and Cloud Run's autoscaler) an explicit back-off signal. On the laptop it did not lower the p95 of
+admitted requests (see the results file); it bounds work, it is not a latency fix. Limits are per instance;
+Cloud Run's ``max_instance_request_concurrency`` bounds what one instance can receive.
 """
 
 from __future__ import annotations
