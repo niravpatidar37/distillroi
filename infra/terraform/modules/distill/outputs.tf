@@ -27,3 +27,13 @@ output "project_number" {
   description = "Project number (for Workload Identity Federation principals)."
   value       = data.google_project.this.number
 }
+
+output "spend_database" {
+  description = "Firestore database holding the shared teacher spend cap (empty when spend_store = file)."
+  value       = local.shared_spend ? google_firestore_database.spend[0].name : ""
+}
+
+output "uptime_check_id" {
+  description = "Cloud Monitoring uptime check on the router /healthz."
+  value       = google_monitoring_uptime_check_config.router_healthz.uptime_check_id
+}

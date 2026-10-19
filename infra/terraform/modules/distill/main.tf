@@ -1,6 +1,14 @@
 locals {
   name   = "distill-${var.env}"
   labels = { app = "distillroi", env = var.env, managed_by = "terraform" }
+
+  # Teacher spend cap. With the shared Firestore store the cap is enforced ACROSS instances (budget leases,
+  # src/distill/shared_spend.py), so each instance's local ledger may use the full cap. Without it, the only safe
+  # setting is a hard per-instance cap = global / max_instances (the sum can never exceed the global cap).
+  shared_spend           = var.spend_store == "firestore"
+  per_instance_cap_usd   = local.shared_spend ? var.teacher_spend_cap_usd : var.teacher_spend_cap_usd / var.router_max_instances
+  spend_database_id      = "${local.name}-spend"
+  fault_injection_on_env = var.env == "staging" && var.staging_fault_injection
 }
 
 data "google_project" "this" {
@@ -201,7 +209,7 @@ resource "google_cloud_run_v2_service" "router" {
 
   template {
     service_account                  = google_service_account.router.email
-    max_instance_request_concurrency = 80
+    max_instance_request_concurrency = var.router_concurrency
     timeout                          = "30s"
 
     containers {
@@ -228,12 +236,57 @@ resource "google_cloud_run_v2_service" "router" {
         value = tostring(var.teacher_enabled)
       }
       env {
+        name  = "ENV"
+        value = var.env
+      }
+      env {
         name  = "PROJECT_SPEND_CAP_USD"
-        value = tostring(var.teacher_spend_cap_usd / var.router_max_instances)
+        value = tostring(local.per_instance_cap_usd)
       }
       env {
         name  = "LLM_SPEND_CAP_USD"
-        value = tostring(var.teacher_spend_cap_usd / var.router_max_instances)
+        value = tostring(local.per_instance_cap_usd)
+      }
+      env {
+        name  = "SPEND_STORE"
+        value = var.spend_store
+      }
+      env {
+        name  = "SHARED_SPEND_CAP_USD"
+        value = tostring(var.teacher_spend_cap_usd)
+      }
+      env {
+        name  = "FIRESTORE_PROJECT"
+        value = var.project_id
+      }
+      env {
+        name  = "FIRESTORE_DATABASE"
+        value = local.spend_database_id
+      }
+      env {
+        name  = "TEACHER_UNAVAILABLE_POLICY"
+        value = var.teacher_unavailable_policy
+      }
+      env {
+        name  = "MAX_INFLIGHT"
+        value = tostring(var.router_max_inflight)
+      }
+      env {
+        name  = "MAX_QUEUE"
+        value = tostring(var.router_max_queue)
+      }
+      env {
+        name  = "RATE_LIMIT_RPS"
+        value = tostring(var.rate_limit_rps)
+      }
+      env {
+        name  = "RATE_LIMIT_BURST"
+        value = tostring(var.rate_limit_burst)
+      }
+      env {
+        # X-Distill-Fault smoke hooks: staging only (the app also refuses them when ENV=prod)
+        name  = "FAULT_INJECTION_ENABLED"
+        value = tostring(local.fault_injection_on_env)
       }
       env {
         name  = "LLM_SPEND_LEDGER"
@@ -284,7 +337,10 @@ resource "google_cloud_run_v2_service" "router" {
     ignore_changes = [template[0].containers[0].image, traffic, client, client_version]
   }
 
-  depends_on = [google_secret_manager_secret_iam_member.router_reads_key]
+  depends_on = [
+    google_secret_manager_secret_iam_member.router_reads_key,
+    google_project_iam_member.router_spend_store,
+  ]
 }
 
 resource "google_cloud_run_v2_service_iam_member" "router_invokers" {
