@@ -21,7 +21,7 @@ dependencies = [
 # `uv sync --extra train`.
 train = [
     "torch>=2.8",
-    "transformers>=4.57,<5",
+    "transformers>=4.57,<6",
     "peft>=0.17",
     "bitsandbytes>=0.48",
     "accelerate>=1.10",
