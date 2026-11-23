@@ -10,7 +10,7 @@ services:
   vllm:
     profiles: [gpu]
     # pinned by digest (v0.31.0 multi-arch index)
-    image: vllm/vllm-openai:v0.31.0@sha256:c1c9f6fd5c109ba7f0546a59f5b2f15fb87f64c77782e90a27b648b42a8e67c3
+    image: vllm/vllm-openai:v0.34.0@sha256:20fdb089454afbb324efa4110a2c025ff7b27cc1a086e07aa580b18df8ad1ce1
     command:
       - /models/student
       - --served-model-name=distill-student
